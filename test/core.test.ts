@@ -1,4 +1,4 @@
-import { TransactionSubTypes, TransactionType } from '@msafe/sui3-utils';
+import { TransactionSubTypes, TransactionType } from '@msafe/iota-utils';
 
 import { CoinTransferIntention, CoinTransferIntentionData } from '@/apps/msafe-core/coin-transfer';
 import { appHelpers } from '@/index';
@@ -12,14 +12,14 @@ describe('MSafe Core Wallet', () => {
     expect(appHelper.application).toBe('msafe-core');
 
     const res = await appHelper.build({
-      network: 'sui:devnet',
+      network: 'iota:testnet',
       txType: TransactionType.Assets,
       txSubType: TransactionSubTypes.assets.coin.send,
-      suiClient: Client,
+      client: Client,
       account: Account,
       intentionData: {
         amount: '1000',
-        coinType: '0x2::sui::SUI',
+        coinType: '0x2::iota::IOTA',
         recipient: '123',
       } as CoinTransferIntentionData,
     });

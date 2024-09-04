@@ -2,7 +2,7 @@ name: Publish
 
 on:
   push:
-    branches: [main]
+    branches: [main, iota]
 
 jobs:
   publish:
@@ -16,24 +16,30 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: yarn
 
       - name: Test
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: yarn test
 
       - name: Build
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: yarn build
 
       - name: Publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
           GIT_TOKEN: ${{ secrets.AUTOMATION_PAT_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
         run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
           git config --global user.name "MSafeAdmin"
           git config --global user.email "admin@m-safe.io"
           git fetch
-          git checkout main
+          git checkout iota
           git clean -df
           git checkout .
           git pull
