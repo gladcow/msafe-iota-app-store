@@ -1,6 +1,6 @@
 {
   "name": "@msafe/iota-app-store",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "MSafe IOTA app store repository",
   "author": "Momentum Safe",
   "license": "MIT",
@@ -72,5 +72,6 @@
     "@iota/iota-sdk": ">0.1.0",
     "@iota/wallet-standard": ">0.1.0",
     "@msafe/iota-utils": ">1.0.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

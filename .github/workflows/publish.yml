@@ -39,7 +39,7 @@ jobs:
           git config --global user.name "MSafeAdmin"
           git config --global user.email "admin@m-safe.io"
           git fetch
-          git checkout iota
+          git checkout main
           git clean -df
           git checkout .
           git pull
