@@ -1,5 +1,5 @@
 import { IotaClient } from '@iota/iota-sdk/client';
-import { TransactionBlock } from '@iota/iota-sdk/transactions';
+import { Transaction } from '@iota/iota-sdk/transactions';
 import { WalletAccount } from '@iota/wallet-standard';
 import { TransactionType, isSameAddress } from '@msafe/iota-utils';
 
@@ -18,11 +18,11 @@ export class PlainPayloadIntention extends CoreBaseIntention<PlainPayloadIntenti
     super(data);
   }
 
-  async build(input: { client: IotaClient; account: WalletAccount }): Promise<TransactionBlock> {
+  async build(input: { client: IotaClient; account: WalletAccount }): Promise<Transaction> {
     const { account } = input;
-    const tb = TransactionBlock.from(this.data.content);
+    const tb = Transaction.from(this.data.content);
 
-    if (!isSameAddress(tb.blockData.sender, account.address)) {
+    if (!isSameAddress(tb.getData().sender, account.address)) {
       throw new Error('Invalid sender address');
     }
 

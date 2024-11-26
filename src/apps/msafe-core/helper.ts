@@ -1,10 +1,10 @@
+import { IotaClient } from '@iota/iota-sdk/client';
+import { Transaction } from '@iota/iota-sdk/transactions';
 import { WalletAccount } from '@iota/wallet-standard';
 import { TransactionDefaultApplication, TransactionSubTypes, TransactionType } from '@msafe/iota-utils';
 
 import { MSafeAppHelper } from '@/apps/interface';
 import { CoinTransferIntention, CoinTransferIntentionData } from '@/apps/msafe-core/coin-transfer';
-import { IotaClient } from '@iota/iota-sdk/client';
-import { TransactionBlock } from '@iota/iota-sdk/transactions';
 
 import { ObjectTransferIntention, ObjectTransferIntentionData } from './object-transfer';
 import { PlainPayloadIntention, PlainPayloadIntentionData } from './plain-payload';
@@ -30,7 +30,7 @@ export class CoreHelper implements MSafeAppHelper<CoreIntentionData> {
     txSubType: string;
     client: IotaClient;
     account: WalletAccount;
-  }): Promise<TransactionBlock> {
+  }): Promise<Transaction> {
     const { client, account } = input;
     let intention: CoreIntention;
     switch (input.txSubType) {

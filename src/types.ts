@@ -1,1 +1,1 @@
-export type SuiNetworks = 'sui:devnet' | 'sui:testnet' | 'sui:localnet' | 'sui:mainnet';
+export type IotaNetworks = 'iota:devnet' | 'iota:testnet' | 'iota:localnet' | 'iota:mainnet';

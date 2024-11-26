@@ -1,25 +1,25 @@
 import { CoinStruct, IotaClient, IotaObjectResponse, PaginatedCoins } from '@iota/iota-sdk/client';
-import { TransactionBlock } from '@iota/iota-sdk/transactions';
+import { Transaction } from '@iota/iota-sdk/transactions';
 import {
   CoinTransferIntention,
   isCoinObjectType,
   isSameAddress,
   isSuiStructEqual,
   ObjectTransferIntention,
-  SuiAddress,
+  IotaAddress,
 } from '@msafe/iota-utils';
 
-export async function buildCoinTransferTxb(client: IotaClient, intention: CoinTransferIntention, sender: SuiAddress) {
+export async function buildCoinTransferTxb(client: IotaClient, intention: CoinTransferIntention, sender: IotaAddress) {
   if (isSuiStructEqual(intention.coinType, '0x2::iota::IOTA')) {
     return buildSuiCoinTransferTxb(intention, sender);
   }
   return buildOtherCoinTransferTxb(client, intention, sender);
 }
 
-export function buildSuiCoinTransferTxb(intention: CoinTransferIntention, sender: SuiAddress) {
-  const block = new TransactionBlock();
-  const [coin] = block.splitCoins(block.gas, [block.pure(intention.amount)]);
-  block.transferObjects([coin], block.pure(intention.recipient));
+export function buildSuiCoinTransferTxb(intention: CoinTransferIntention, sender: IotaAddress) {
+  const block = new Transaction();
+  const [coin] = block.splitCoins(block.gas, [block.pure.u128(intention.amount)]);
+  block.transferObjects([coin], block.pure.address(intention.recipient));
   block.setSender(sender);
   return block;
 }
@@ -27,7 +27,7 @@ export function buildSuiCoinTransferTxb(intention: CoinTransferIntention, sender
 export async function buildOtherCoinTransferTxb(
   client: IotaClient,
   intention: CoinTransferIntention,
-  sender: SuiAddress,
+  sender: IotaAddress,
 ) {
   const objs = await getAllCoins(client, sender, intention.coinType);
   if (objs.length === 0) {
@@ -37,7 +37,7 @@ export async function buildOtherCoinTransferTxb(
   if (totalBal < BigInt(intention.amount)) {
     throw new Error('Not enough balance');
   }
-  const txb = new TransactionBlock();
+  const txb = new Transaction();
   const primary = txb.object(objs[0].coinObjectId);
   if (objs.length > 1) {
     txb.mergeCoins(
@@ -45,8 +45,8 @@ export async function buildOtherCoinTransferTxb(
       objs.slice(1).map((obj) => txb.object(obj.coinObjectId)),
     );
   }
-  const [coin] = txb.splitCoins(primary, [txb.pure(intention.amount)]);
-  txb.transferObjects([coin], txb.pure(intention.recipient));
+  const [coin] = txb.splitCoins(primary, [txb.pure.u128(intention.amount)]);
+  txb.transferObjects([coin], txb.pure.address(intention.recipient));
   txb.setSender(sender);
   return txb;
 }
@@ -58,7 +58,7 @@ export async function buildOtherCoinTransferTxb(
  * @param coinType coin type
  * @returns coins
  */
-export async function getAllCoins(client: IotaClient, owner: SuiAddress, coinType: string | undefined) {
+export async function getAllCoins(client: IotaClient, owner: IotaAddress, coinType: string | undefined) {
   let hasNext = true;
   let cursor: string | undefined | null;
   const res: CoinStruct[] = [];
@@ -78,18 +78,18 @@ export async function getAllCoins(client: IotaClient, owner: SuiAddress, coinTyp
 export async function buildObjectTransferTxb(
   client: IotaClient,
   intention: ObjectTransferIntention,
-  sender: SuiAddress,
+  sender: IotaAddress,
 ) {
   await validateObjectTransfer(client, intention, sender);
 
-  const txb = new TransactionBlock();
-  txb.transferObjects([txb.object(intention.objectId)], txb.pure(intention.receiver));
+  const txb = new Transaction();
+  txb.transferObjects([txb.object(intention.objectId)], txb.pure.address(intention.receiver));
   txb.setSender(sender);
 
   return txb;
 }
 
-async function validateObjectTransfer(client: IotaClient, intention: ObjectTransferIntention, sender: SuiAddress) {
+async function validateObjectTransfer(client: IotaClient, intention: ObjectTransferIntention, sender: IotaAddress) {
   const obj = await client.getObject({
     id: intention.objectId,
     options: {

@@ -1,16 +1,16 @@
 import { IotaClient } from '@iota/iota-sdk/client';
-import { IotaSignTransactionBlockInput, WalletAccount } from '@iota/wallet-standard';
+import { Transaction } from '@iota/iota-sdk/transactions';
+import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
 import sortKeys from 'sort-keys-recursive';
 
-import { SuiNetworks } from '@/types';
-import { TransactionBlock } from '@iota/iota-sdk/transactions';
+import { IotaNetworks } from '@/types';
 
 export interface MSafeAppHelper<T> {
   application: string;
   deserialize(
-    input: IotaSignTransactionBlockInput & {
-      network: SuiNetworks;
+    input: IotaSignTransactionInput & {
+      network: IotaNetworks;
       client: IotaClient;
       account: WalletAccount;
     },
@@ -26,7 +26,7 @@ export interface MSafeAppHelper<T> {
     intentionData: T;
     client: IotaClient;
     account: WalletAccount;
-  }): Promise<TransactionBlock>;
+  }): Promise<Transaction>;
 }
 
 export interface TransactionIntention<D> {
@@ -44,12 +44,12 @@ export abstract class BaseIntention<D> implements TransactionIntention<D> {
   protected constructor(public readonly data: D) {}
 
   abstract build(input: {
-    network: SuiNetworks;
+    network: IotaNetworks;
     txType: TransactionType;
     txSubType: string;
     client: IotaClient;
     account: WalletAccount;
-  }): Promise<TransactionBlock>;
+  }): Promise<Transaction>;
 
   serialize() {
     return JSON.stringify(sortKeys(this.data));

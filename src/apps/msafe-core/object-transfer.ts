@@ -1,9 +1,10 @@
-import { TransactionBlock } from '@iota/iota-sdk/transactions';
+import { IotaClient } from '@iota/iota-sdk/dist/cjs/client';
+import { Transaction } from '@iota/iota-sdk/transactions';
 import { WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
 
 import { CoreBaseIntention } from '@/apps/msafe-core/intention';
-import { IotaClient } from '@iota/iota-sdk/dist/cjs/client';
+
 import { buildObjectTransferTxb } from './utils';
 
 export interface ObjectTransferIntentionData {
@@ -21,7 +22,7 @@ export class ObjectTransferIntention extends CoreBaseIntention<ObjectTransferInt
     super(data);
   }
 
-  async build(input: { client: IotaClient; account: WalletAccount }): Promise<TransactionBlock> {
+  async build(input: { client: IotaClient; account: WalletAccount }): Promise<Transaction> {
     const { client, account } = input;
     return buildObjectTransferTxb(client, this.data, account.address);
   }
