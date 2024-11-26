@@ -18,7 +18,7 @@ export async function buildCoinTransferTxb(client: IotaClient, intention: CoinTr
 
 export function buildSuiCoinTransferTxb(intention: CoinTransferIntention, sender: IotaAddress) {
   const block = new Transaction();
-  const [coin] = block.splitCoins(block.gas, [block.pure.u128(intention.amount)]);
+  const [coin] = block.splitCoins(block.gas, [BigInt(intention.amount)]);
   block.transferObjects([coin], block.pure.address(intention.recipient));
   block.setSender(sender);
   return block;
@@ -45,7 +45,7 @@ export async function buildOtherCoinTransferTxb(
       objs.slice(1).map((obj) => txb.object(obj.coinObjectId)),
     );
   }
-  const [coin] = txb.splitCoins(primary, [txb.pure.u128(intention.amount)]);
+  const [coin] = txb.splitCoins(primary, [BigInt(intention.amount)]);
   txb.transferObjects([coin], txb.pure.address(intention.recipient));
   txb.setSender(sender);
   return txb;
