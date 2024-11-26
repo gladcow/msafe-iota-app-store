@@ -1256,10 +1256,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@msafe/iota-utils@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@msafe/iota-utils/-/iota-utils-1.1.4.tgz#d99f0e8432b263ad051f7382aeddac7a4c1d76c6"
-  integrity sha512-Yz8nl/8sEi3WVj3IbFi/Uum6pzFIav7QKglqE77vJdQDt5lFrHauZSYBKhfsa6WWnpFfIN1/WxoPdNnDThBuJg==
+"@msafe/iota-utils@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@msafe/iota-utils/-/iota-utils-1.1.5.tgz#1d93c027e8cf952d6c12adbcbf2a8f7e90717c8b"
+  integrity sha512-yrBIZc9B6cr5CUBdudsh0GlPnA6GxXltDJrUn3li8oihjYcTguK2NTcLrYvda0jitjb2zM1mf3BE1V1A3KkUrA==
   dependencies:
     "@msafe/sui3-model" "^1.0.40"
     "@noble/hashes" "^1.3.3"
