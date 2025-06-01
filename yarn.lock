@@ -963,20 +963,20 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-2.0.3.tgz#4a2868d75d6d6963e423bcf90b7fd1be343409d3"
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
 
-"@iota/bcs@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@iota/bcs/-/bcs-0.2.1.tgz#96dbcdaacb9003f5e44a5026bf0efad28e445bd8"
-  integrity sha512-T+iv5gZhUZP7BiDY7+Ir4MA2rYmyGNZA2b+nxjv219Fp8klFt+l38OWA+1RgJXrCmzuZ+M4hbMAeHhHziURX6Q==
+"@iota/bcs@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@iota/bcs/-/bcs-1.0.0.tgz#68fc58339baf7754fda9993145c09090587cfbf3"
+  integrity sha512-oxXgpzlL0d2jbzZH/9XmLcM+jmPbYT1hbbPfkvzMZvGChIDw1zLvp1EFsJtb2hAcLHORIAHIV0xEhzhBpIlSqA==
   dependencies:
     bs58 "^6.0.0"
 
-"@iota/iota-sdk@0.3.1", "@iota/iota-sdk@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@iota/iota-sdk/-/iota-sdk-0.3.1.tgz#ccd25c31b51b302eca0e2b56730ed59839cc8c19"
-  integrity sha512-YncuQm1wVBDNW6WDFTz6Qk/0zOEyAREXk9udU11VHZrzSn/HS/dcamRjLmv4Ls6FW04q/Y6pSRPDiJoWwJ16Zg==
+"@iota/iota-sdk@1.1.0", "@iota/iota-sdk@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@iota/iota-sdk/-/iota-sdk-1.1.0.tgz#9ed399fd2fc148675631215b3eb6da9e5bf85f33"
+  integrity sha512-LJeNamqUnjvn43bhyONtggAZ9vNmg/DivduI4jJmvXt/Y6jHM3XCYKF4FSLeDadrY/pp6ir8x7OG/1jmr+fRJA==
   dependencies:
     "@graphql-typed-document-node/core" "^3.2.0"
-    "@iota/bcs" "0.2.1"
+    "@iota/bcs" "1.0.0"
     "@noble/curves" "^1.4.2"
     "@noble/hashes" "^1.4.0"
     "@scure/bip32" "^1.4.0"
@@ -988,12 +988,12 @@
     tweetnacl "^1.0.3"
     valibot "^0.36.0"
 
-"@iota/wallet-standard@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@iota/wallet-standard/-/wallet-standard-0.2.1.tgz#766bd611cfba90f0060c1c18bf290c9617cc1bd4"
-  integrity sha512-BmSwr8YG3N/2FeBzckry2OqRrvb8V9hLQHrMAyhRd3sUNc/djdI6irYhY3FpZuE0uxtgpWXxQToJpQ9P+sDLQg==
+"@iota/wallet-standard@^0.2.9":
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/@iota/wallet-standard/-/wallet-standard-0.2.9.tgz#b504072115ebc1e389d5523be81cb940661d7c22"
+  integrity sha512-85FB07P1F5uyJw4wGRp+IEbNKsu+hC3rbLWEJabU0zifxZIcPnHBAKfzhuPy2tBWfjvW1fLObYWe+iq//oi6wg==
   dependencies:
-    "@iota/iota-sdk" "0.3.1"
+    "@iota/iota-sdk" "1.1.0"
     "@wallet-standard/core" "1.0.3"
 
 "@isaacs/cliui@^8.0.2":
