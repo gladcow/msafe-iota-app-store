@@ -1,5 +1,5 @@
 const config = {
-  // Package information - usar una dirección válida de 32 bytes
+  // Package information
   moduleId: '0x0000000000000000000000000000000000000000000000000000000000000001',
 
   // Module entries
