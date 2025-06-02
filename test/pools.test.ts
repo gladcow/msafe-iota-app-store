@@ -567,4 +567,189 @@ describe('Pools Protocol Wallet', () => {
       ).rejects.toThrow('Unsupported transaction subtype: UNSUPPORTED_TYPE');
     });
   });
+
+  // ========== DESERIALIZE TESTS ==========
+
+  describe('Transaction Deserialization', () => {
+    it('Should deserialize AddLiquidity transaction', async () => {
+      const originalData: AddLiquidityIntentionData = {
+        poolId: mockIds.poolId,
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        amountADesired: '1000000000',
+        amountBDesired: '2000000000',
+        amountAMin: '900000000',
+        amountBMin: '1800000000',
+      };
+
+      // Build transaction
+      const transaction = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Assets,
+        txSubType: TransactionSubType.ADD_LIQUIDITY,
+        client: Client,
+        account: Account,
+        intentionData: originalData,
+      });
+
+      // Deserialize transaction
+      const result = await appHelper.deserialize({
+        transaction,
+        chain: 'iota:testnet',
+        network: 'iota:testnet',
+        client: Client,
+        account: Account,
+      });
+
+      expect(result.txType).toBe(TransactionType.Assets);
+      expect(result.txSubType).toBe(TransactionSubType.ADD_LIQUIDITY);
+      expect(result.intentionData.coinTypeA).toBe(originalData.coinTypeA);
+      expect(result.intentionData.coinTypeB).toBe(originalData.coinTypeB);
+      expect(result.intentionData.poolId).toBe(originalData.poolId);
+    });
+
+    it('Should deserialize InitPoolClassic transaction', async () => {
+      const originalData: InitPoolClassicIntentionData = {
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        globalCreatedPoolsId: mockIds.globalConfigId,
+      };
+
+      // Build transaction
+      const transaction = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Other,
+        txSubType: TransactionSubType.INIT_POOL_CLASSIC,
+        client: Client,
+        account: Account,
+        intentionData: originalData,
+      });
+
+      // Deserialize transaction
+      const result = await appHelper.deserialize({
+        transaction,
+        chain: 'iota:testnet',
+        network: 'iota:testnet',
+        client: Client,
+        account: Account,
+      });
+
+      expect(result.txType).toBe(TransactionType.Other);
+      expect(result.txSubType).toBe(TransactionSubType.INIT_POOL_CLASSIC);
+      expect(result.intentionData.coinTypeA).toBe(originalData.coinTypeA);
+      expect(result.intentionData.coinTypeB).toBe(originalData.coinTypeB);
+      expect(result.intentionData.globalCreatedPoolsId).toBe(originalData.globalCreatedPoolsId);
+    });
+
+    it('Should deserialize SetNewPoolAmplification transaction', async () => {
+      const originalData: SetNewPoolAmplificationIntentionData = {
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        adminCapId: mockIds.adminCapId,
+        poolId: mockIds.poolId,
+        newAmplification: '200',
+      };
+
+      // Build transaction
+      const transaction = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Other,
+        txSubType: TransactionSubType.SET_NEW_POOL_AMPLIFICATION,
+        client: Client,
+        account: Account,
+        intentionData: originalData,
+      });
+
+      // Deserialize transaction
+      const result = await appHelper.deserialize({
+        transaction,
+        chain: 'iota:testnet',
+        network: 'iota:testnet',
+        client: Client,
+        account: Account,
+      });
+
+      expect(result.txType).toBe(TransactionType.Other);
+      expect(result.txSubType).toBe(TransactionSubType.SET_NEW_POOL_AMPLIFICATION);
+      expect(result.intentionData.coinTypeA).toBe(originalData.coinTypeA);
+      expect(result.intentionData.coinTypeB).toBe(originalData.coinTypeB);
+      expect(result.intentionData.newAmplification).toBe(originalData.newAmplification);
+    });
+
+    it('Should deserialize ChangePoolType transaction', async () => {
+      const originalData: ChangePoolTypeIntentionData = {
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        adminCapId: mockIds.adminCapId,
+        poolId: mockIds.poolId,
+        isStable: true,
+        newAmplificationP: '100',
+      };
+
+      // Build transaction
+      const transaction = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Other,
+        txSubType: TransactionSubType.CHANGE_POOL_TYPE,
+        client: Client,
+        account: Account,
+        intentionData: originalData,
+      });
+
+      // Deserialize transaction
+      const result = await appHelper.deserialize({
+        transaction,
+        chain: 'iota:testnet',
+        network: 'iota:testnet',
+        client: Client,
+        account: Account,
+      });
+
+      expect(result.txType).toBe(TransactionType.Other);
+      expect(result.txSubType).toBe(TransactionSubType.CHANGE_POOL_TYPE);
+      expect(result.intentionData.isStable).toBe(originalData.isStable);
+      expect(result.intentionData.newAmplificationP).toBe(originalData.newAmplificationP);
+    });
+
+    it('Should deserialize RegisterPool transaction', async () => {
+      const originalData: RegisterPoolIntentionData = {
+        stakeCoinType: mockCoinTypes.coinA,
+        rewardCoinType: mockCoinTypes.coinB,
+        rewardsCoinId: mockIds.rewardsCoinId,
+        duration: '86400000',
+        globalConfigId: mockIds.globalConfigId,
+        decimalS: 9,
+        decimalR: 9,
+        clockId: mockIds.clockId,
+        durationUnstakeTimeMs: '3600000',
+        maxStakeValue: '10000000000',
+      };
+
+      // Build transaction
+      const transaction = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Other,
+        txSubType: TransactionSubType.REGISTER_POOL,
+        client: Client,
+        account: Account,
+        intentionData: originalData,
+      });
+
+      // Deserialize transaction
+      const result = await appHelper.deserialize({
+        transaction,
+        chain: 'iota:testnet',
+        network: 'iota:testnet',
+        client: Client,
+        account: Account,
+      });
+
+      expect(result.txType).toBe(TransactionType.Other);
+      expect(result.txSubType).toBe(TransactionSubType.REGISTER_POOL);
+      expect(result.intentionData.stakeCoinType).toBe(originalData.stakeCoinType);
+      expect(result.intentionData.rewardCoinType).toBe(originalData.rewardCoinType);
+      expect(result.intentionData.decimalS).toBe(originalData.decimalS);
+      expect(result.intentionData.decimalR).toBe(originalData.decimalR);
+    });
+  });
 });
