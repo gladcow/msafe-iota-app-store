@@ -10,6 +10,12 @@ const config = {
   addLiquidityMethod: 'add_liquidity',
   removeLiquidityMethod: 'remove_liquidity',
 
+  // Swap methods
+  swapExactCoinAForCoinBMethod: 'swap_exact_coinA_for_coinB',
+  swapExactCoinBForCoinAMethod: 'swap_exact_coinB_for_coinA',
+  swapCoinAForExactCoinBMethod: 'swap_coinA_for_exact_coinB',
+  swapCoinBForExactCoinAMethod: 'swap_coinB_for_exact_coinA',
+
   // Pool creation methods
   initPoolClassicMethod: 'init_pool_classic',
   initPoolStableMethod: 'init_pool_stable',

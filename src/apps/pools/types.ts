@@ -3,6 +3,12 @@ export enum TransactionSubType {
   ADD_LIQUIDITY = 'add-liquidity',
   REMOVE_LIQUIDITY = 'remove-liquidity',
 
+  // Swap Operations
+  SWAP_EXACT_A_FOR_B = 'swap-exact-a-for-b',
+  SWAP_EXACT_B_FOR_A = 'swap-exact-b-for-a',
+  SWAP_A_FOR_EXACT_B = 'swap-a-for-exact-b',
+  SWAP_B_FOR_EXACT_A = 'swap-b-for-exact-a',
+
   // Pool Creation
   INIT_POOL_CLASSIC = 'init-pool-classic',
   INIT_POOL_STABLE = 'init-pool-stable',

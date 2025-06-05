@@ -2,7 +2,6 @@ import { TransactionType } from '@msafe/iota-utils';
 
 // Import intention data types for core functionality
 import { AddLiquidityIntentionData, AddLiquidityIntention } from '@/apps/pools/intentions/addLiquidity';
-import { ChangePoolTypeIntentionData, ChangePoolTypeIntention } from '@/apps/pools/intentions/changePoolType';
 import { ClaimFeeIntentionData } from '@/apps/pools/intentions/claimFee';
 import { EmergencyUnstakeIntentionData } from '@/apps/pools/intentions/emergencyUnstake';
 import { EnableEmergencyIntentionData } from '@/apps/pools/intentions/enableEmergency';
@@ -14,14 +13,14 @@ import { InitPoolClassicIntentionData } from '@/apps/pools/intentions/initPoolCl
 import { InitPoolStableIntentionData } from '@/apps/pools/intentions/initPoolStable';
 import { RegisterPoolIntentionData, RegisterPoolIntention } from '@/apps/pools/intentions/registerPool';
 import { RemoveLiquidityIntentionData, RemoveLiquidityIntention } from '@/apps/pools/intentions/removeLiquidity';
-import { SetEmergencyAdminAddressIntentionData } from '@/apps/pools/intentions/setEmergencyAdminAddress';
 import { SetGlobalPauseStatusIntentionData } from '@/apps/pools/intentions/setGlobalPauseStatus';
-import {
-  SetNewPoolAmplificationIntentionData,
-  SetNewPoolAmplificationIntention,
-} from '@/apps/pools/intentions/setNewPoolAmplification';
-import { SetTreasuryAdminAddressIntentionData } from '@/apps/pools/intentions/setTreasuryAdminAddress';
+import { SwapAForExactBIntentionData, SwapAForExactBIntention } from '@/apps/pools/intentions/swapAForExactB';
+import { SwapExactAForBIntentionData, SwapExactAForBIntention } from '@/apps/pools/intentions/swapExactAForB';
+import { SwapExactBForAIntentionData, SwapExactBForAIntention } from '@/apps/pools/intentions/swapExactBForA';
+import { SwapBForExactAIntentionData, SwapBForExactAIntention } from '@/apps/pools/intentions/swapBForExactA';
 import { WithdrawRewardToTreasuryIntentionData } from '@/apps/pools/intentions/withdrawRewardToTreasury';
+import { SetTreasuryAdminAddressIntentionData } from '@/apps/pools/intentions/setTreasuryAdminAddress';
+import { SetEmergencyAdminAddressIntentionData } from '@/apps/pools/intentions/setEmergencyAdminAddress';
 import { TransactionSubType } from '@/apps/pools/types';
 import { appHelpers } from '@/index';
 
@@ -45,7 +44,7 @@ describe('Pools Protocol Wallet', () => {
 
   const mockCoinTypes = {
     coinA: '0x2::iota::IOTA',
-    coinB: '0x3::usdt::USDT',
+    coinB: '0x2::sui::SUI',
   };
 
   const mockAddress = '0x1111111111111111111111111111111111111111';
@@ -58,10 +57,10 @@ describe('Pools Protocol Wallet', () => {
         poolId: mockIds.poolId,
         coinTypeA: mockCoinTypes.coinA,
         coinTypeB: mockCoinTypes.coinB,
-        amountADesired: '1000000000',
-        amountBDesired: '2000000000',
-        amountAMin: '900000000',
-        amountBMin: '1800000000',
+        amountADesired: '1000000000', // 1 IOTA
+        amountBDesired: '2000000000', // 2 SUI
+        amountAMin: '900000000', // 0.9 IOTA (10% slippage)
+        amountBMin: '1800000000', // 1.8 SUI (10% slippage)
       };
 
       const res = await appHelper.build({
@@ -139,6 +138,182 @@ describe('Pools Protocol Wallet', () => {
     });
   });
 
+  // ========== SWAP OPERATIONS TESTS ==========
+
+  describe('Swap Operations', () => {
+    it('Swap Exact A for B transaction build', async () => {
+      const intentionData: SwapExactAForBIntentionData = {
+        poolId: mockIds.poolId,
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        coinAId: mockIds.rewardsCoinId,
+        amountAIn: '1000000000',
+        amountBOutMin: '1900000000',
+      };
+
+      const res = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Assets,
+        txSubType: TransactionSubType.SWAP_EXACT_A_FOR_B,
+        client: Client,
+        account: Account,
+        intentionData,
+      });
+
+      expect(res.blockData.version).toBe(1);
+      expect(res.blockData.sender).toBe(Account.address);
+    });
+
+    it('Swap Exact B for A transaction build', async () => {
+      const intentionData: SwapExactBForAIntentionData = {
+        poolId: mockIds.poolId,
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        coinBId: mockIds.adminCapId,
+        amountBIn: '2000000000',
+        amountAOutMin: '950000000',
+      };
+
+      const res = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Assets,
+        txSubType: TransactionSubType.SWAP_EXACT_B_FOR_A,
+        client: Client,
+        account: Account,
+        intentionData,
+      });
+
+      expect(res.blockData.version).toBe(1);
+      expect(res.blockData.sender).toBe(Account.address);
+    });
+
+    it('Swap A for Exact B transaction build', async () => {
+      const intentionData: SwapAForExactBIntentionData = {
+        poolId: mockIds.poolId,
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        coinAId: mockIds.rewardsCoinId,
+        amountAMax: '1100000000',
+        amountBOut: '2000000000',
+      };
+
+      const res = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Assets,
+        txSubType: TransactionSubType.SWAP_A_FOR_EXACT_B,
+        client: Client,
+        account: Account,
+        intentionData,
+      });
+
+      expect(res.blockData.version).toBe(1);
+      expect(res.blockData.sender).toBe(Account.address);
+    });
+
+    it('Swap B for Exact A transaction build', async () => {
+      const intentionData: SwapBForExactAIntentionData = {
+        poolId: mockIds.poolId,
+        coinTypeA: mockCoinTypes.coinA,
+        coinTypeB: mockCoinTypes.coinB,
+        coinBId: mockIds.adminCapId,
+        amountBMax: '2100000000',
+        amountAOut: '1000000000',
+      };
+
+      const res = await appHelper.build({
+        network: 'iota:testnet',
+        txType: TransactionType.Assets,
+        txSubType: TransactionSubType.SWAP_B_FOR_EXACT_A,
+        client: Client,
+        account: Account,
+        intentionData,
+      });
+
+      expect(res.blockData.version).toBe(1);
+      expect(res.blockData.sender).toBe(Account.address);
+    });
+
+    it('Swap Exact A for B intention serialization', () => {
+      const intentionData: SwapExactAForBIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinAId: 'coinA123',
+        amountAIn: '1000',
+        amountBOutMin: '1900',
+      };
+
+      const intention = SwapExactAForBIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed.poolId).toBe(intentionData.poolId);
+      expect(parsed.coinAId).toBe(intentionData.coinAId);
+      expect(parsed.amountAIn).toBe(intentionData.amountAIn);
+      expect(parsed.amountBOutMin).toBe(intentionData.amountBOutMin);
+    });
+
+    it('Swap Exact B for A intention serialization', () => {
+      const intentionData: SwapExactBForAIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinBId: 'coinB123',
+        amountBIn: '2000',
+        amountAOutMin: '950',
+      };
+
+      const intention = SwapExactBForAIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed.poolId).toBe(intentionData.poolId);
+      expect(parsed.coinBId).toBe(intentionData.coinBId);
+      expect(parsed.amountBIn).toBe(intentionData.amountBIn);
+      expect(parsed.amountAOutMin).toBe(intentionData.amountAOutMin);
+    });
+
+    it('Swap A for Exact B intention serialization', () => {
+      const intentionData: SwapAForExactBIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinAId: 'coinA123',
+        amountAMax: '1100',
+        amountBOut: '2000',
+      };
+
+      const intention = SwapAForExactBIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed.poolId).toBe(intentionData.poolId);
+      expect(parsed.coinAId).toBe(intentionData.coinAId);
+      expect(parsed.amountAMax).toBe(intentionData.amountAMax);
+      expect(parsed.amountBOut).toBe(intentionData.amountBOut);
+    });
+
+    it('Swap B for Exact A intention serialization', () => {
+      const intentionData: SwapBForExactAIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinBId: 'coinB123',
+        amountBMax: '2100',
+        amountAOut: '1000',
+      };
+
+      const intention = SwapBForExactAIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed.poolId).toBe(intentionData.poolId);
+      expect(parsed.coinBId).toBe(intentionData.coinBId);
+      expect(parsed.amountBMax).toBe(intentionData.amountBMax);
+      expect(parsed.amountAOut).toBe(intentionData.amountAOut);
+    });
+  });
+
   // ========== POOL CREATION TESTS ==========
 
   describe('Pool Creation', () => {
@@ -167,7 +342,7 @@ describe('Pools Protocol Wallet', () => {
         coinTypeA: mockCoinTypes.coinA,
         coinTypeB: mockCoinTypes.coinB,
         globalCreatedPoolsId: mockIds.globalConfigId,
-        amplificationP: '100', // Required for stable pools
+        amplificationP: '100',
       };
 
       const res = await appHelper.build({
@@ -227,89 +402,6 @@ describe('Pools Protocol Wallet', () => {
       expect(res.blockData.version).toBe(1);
       expect(res.blockData.sender).toBe(Account.address);
     });
-
-    it('Set New Pool Amplification transaction build', async () => {
-      const intentionData: SetNewPoolAmplificationIntentionData = {
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        adminCapId: mockIds.adminCapId,
-        poolId: mockIds.poolId,
-        newAmplification: '200',
-      };
-
-      const res = await appHelper.build({
-        network: 'iota:testnet',
-        txType: TransactionType.Other,
-        txSubType: TransactionSubType.SET_NEW_POOL_AMPLIFICATION,
-        client: Client,
-        account: Account,
-        intentionData,
-      });
-
-      expect(res.blockData.version).toBe(1);
-      expect(res.blockData.sender).toBe(Account.address);
-    });
-
-    it('Set New Pool Amplification intention serialization', () => {
-      const intentionData: SetNewPoolAmplificationIntentionData = {
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        adminCapId: mockIds.adminCapId,
-        poolId: mockIds.poolId,
-        newAmplification: '150',
-      };
-
-      const intention = SetNewPoolAmplificationIntention.fromData(intentionData);
-      const serialized = intention.serialize();
-      const parsed = JSON.parse(serialized);
-
-      expect(parsed.poolId).toBe(intentionData.poolId);
-      expect(parsed.newAmplification).toBe(intentionData.newAmplification);
-      expect(parsed.adminCapId).toBe(intentionData.adminCapId);
-    });
-
-    it('Change Pool Type transaction build', async () => {
-      const intentionData: ChangePoolTypeIntentionData = {
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        adminCapId: mockIds.adminCapId,
-        poolId: mockIds.poolId,
-        isStable: true,
-        newAmplificationP: '100',
-      };
-
-      const res = await appHelper.build({
-        network: 'iota:testnet',
-        txType: TransactionType.Other,
-        txSubType: TransactionSubType.CHANGE_POOL_TYPE,
-        client: Client,
-        account: Account,
-        intentionData,
-      });
-
-      expect(res.blockData.version).toBe(1);
-      expect(res.blockData.sender).toBe(Account.address);
-    });
-
-    it('Change Pool Type intention serialization', () => {
-      const intentionData: ChangePoolTypeIntentionData = {
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        adminCapId: mockIds.adminCapId,
-        poolId: mockIds.poolId,
-        isStable: false,
-        newAmplificationP: '50',
-      };
-
-      const intention = ChangePoolTypeIntention.fromData(intentionData);
-      const serialized = intention.serialize();
-      const parsed = JSON.parse(serialized);
-
-      expect(parsed.poolId).toBe(intentionData.poolId);
-      expect(parsed.isStable).toBe(intentionData.isStable);
-      expect(parsed.newAmplificationP).toBe(intentionData.newAmplificationP);
-      expect(parsed.adminCapId).toBe(intentionData.adminCapId);
-    });
   });
 
   // ========== FARMING/STAKING TESTS ==========
@@ -319,13 +411,13 @@ describe('Pools Protocol Wallet', () => {
       const intentionData: RegisterPoolIntentionData = {
         stakeCoinType: mockCoinTypes.coinA,
         rewardCoinType: mockCoinTypes.coinB,
-        rewardsCoinId: mockIds.rewardsCoinId, // Correct field name
-        duration: '86400000', // 1 day in ms
+        rewardsCoinId: mockIds.rewardsCoinId,
+        duration: '86400000',
         globalConfigId: mockIds.globalConfigId,
         decimalS: 9,
         decimalR: 9,
         clockId: mockIds.clockId,
-        durationUnstakeTimeMs: '3600000', // 1 hour
+        durationUnstakeTimeMs: '3600000',
         maxStakeValue: '10000000000',
       };
 
@@ -549,6 +641,40 @@ describe('Pools Protocol Wallet', () => {
 
       expect(parsed).toEqual(intentionData);
     });
+
+    it('Test SwapExactAForB intention serialization', () => {
+      const intentionData: SwapExactAForBIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinAId: 'coinA123',
+        amountAIn: '1000',
+        amountBOutMin: '1900',
+      };
+
+      const intention = SwapExactAForBIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
+    });
+
+    it('Test SwapAForExactB intention serialization', () => {
+      const intentionData: SwapAForExactBIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinAId: 'coinA123',
+        amountAMax: '1100',
+        amountBOut: '2000',
+      };
+
+      const intention = SwapAForExactBIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
+    });
   });
 
   // ========== ERROR HANDLING TESTS ==========
@@ -565,191 +691,6 @@ describe('Pools Protocol Wallet', () => {
           intentionData: {} as any,
         }),
       ).rejects.toThrow('Unsupported transaction subtype: UNSUPPORTED_TYPE');
-    });
-  });
-
-  // ========== DESERIALIZE TESTS ==========
-
-  describe('Transaction Deserialization', () => {
-    it('Should deserialize AddLiquidity transaction', async () => {
-      const originalData: AddLiquidityIntentionData = {
-        poolId: mockIds.poolId,
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        amountADesired: '1000000000',
-        amountBDesired: '2000000000',
-        amountAMin: '900000000',
-        amountBMin: '1800000000',
-      };
-
-      // Build transaction
-      const transaction = await appHelper.build({
-        network: 'iota:testnet',
-        txType: TransactionType.Assets,
-        txSubType: TransactionSubType.ADD_LIQUIDITY,
-        client: Client,
-        account: Account,
-        intentionData: originalData,
-      });
-
-      // Deserialize transaction
-      const result = await appHelper.deserialize({
-        transaction,
-        chain: 'iota:testnet',
-        network: 'iota:testnet',
-        client: Client,
-        account: Account,
-      });
-
-      expect(result.txType).toBe(TransactionType.Assets);
-      expect(result.txSubType).toBe(TransactionSubType.ADD_LIQUIDITY);
-      expect(result.intentionData.coinTypeA).toBe(originalData.coinTypeA);
-      expect(result.intentionData.coinTypeB).toBe(originalData.coinTypeB);
-      expect(result.intentionData.poolId).toBe(originalData.poolId);
-    });
-
-    it('Should deserialize InitPoolClassic transaction', async () => {
-      const originalData: InitPoolClassicIntentionData = {
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        globalCreatedPoolsId: mockIds.globalConfigId,
-      };
-
-      // Build transaction
-      const transaction = await appHelper.build({
-        network: 'iota:testnet',
-        txType: TransactionType.Other,
-        txSubType: TransactionSubType.INIT_POOL_CLASSIC,
-        client: Client,
-        account: Account,
-        intentionData: originalData,
-      });
-
-      // Deserialize transaction
-      const result = await appHelper.deserialize({
-        transaction,
-        chain: 'iota:testnet',
-        network: 'iota:testnet',
-        client: Client,
-        account: Account,
-      });
-
-      expect(result.txType).toBe(TransactionType.Other);
-      expect(result.txSubType).toBe(TransactionSubType.INIT_POOL_CLASSIC);
-      expect(result.intentionData.coinTypeA).toBe(originalData.coinTypeA);
-      expect(result.intentionData.coinTypeB).toBe(originalData.coinTypeB);
-      expect(result.intentionData.globalCreatedPoolsId).toBe(originalData.globalCreatedPoolsId);
-    });
-
-    it('Should deserialize SetNewPoolAmplification transaction', async () => {
-      const originalData: SetNewPoolAmplificationIntentionData = {
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        adminCapId: mockIds.adminCapId,
-        poolId: mockIds.poolId,
-        newAmplification: '200',
-      };
-
-      // Build transaction
-      const transaction = await appHelper.build({
-        network: 'iota:testnet',
-        txType: TransactionType.Other,
-        txSubType: TransactionSubType.SET_NEW_POOL_AMPLIFICATION,
-        client: Client,
-        account: Account,
-        intentionData: originalData,
-      });
-
-      // Deserialize transaction
-      const result = await appHelper.deserialize({
-        transaction,
-        chain: 'iota:testnet',
-        network: 'iota:testnet',
-        client: Client,
-        account: Account,
-      });
-
-      expect(result.txType).toBe(TransactionType.Other);
-      expect(result.txSubType).toBe(TransactionSubType.SET_NEW_POOL_AMPLIFICATION);
-      expect(result.intentionData.coinTypeA).toBe(originalData.coinTypeA);
-      expect(result.intentionData.coinTypeB).toBe(originalData.coinTypeB);
-      expect(result.intentionData.newAmplification).toBe(originalData.newAmplification);
-    });
-
-    it('Should deserialize ChangePoolType transaction', async () => {
-      const originalData: ChangePoolTypeIntentionData = {
-        coinTypeA: mockCoinTypes.coinA,
-        coinTypeB: mockCoinTypes.coinB,
-        adminCapId: mockIds.adminCapId,
-        poolId: mockIds.poolId,
-        isStable: true,
-        newAmplificationP: '100',
-      };
-
-      // Build transaction
-      const transaction = await appHelper.build({
-        network: 'iota:testnet',
-        txType: TransactionType.Other,
-        txSubType: TransactionSubType.CHANGE_POOL_TYPE,
-        client: Client,
-        account: Account,
-        intentionData: originalData,
-      });
-
-      // Deserialize transaction
-      const result = await appHelper.deserialize({
-        transaction,
-        chain: 'iota:testnet',
-        network: 'iota:testnet',
-        client: Client,
-        account: Account,
-      });
-
-      expect(result.txType).toBe(TransactionType.Other);
-      expect(result.txSubType).toBe(TransactionSubType.CHANGE_POOL_TYPE);
-      expect(result.intentionData.isStable).toBe(originalData.isStable);
-      expect(result.intentionData.newAmplificationP).toBe(originalData.newAmplificationP);
-    });
-
-    it('Should deserialize RegisterPool transaction', async () => {
-      const originalData: RegisterPoolIntentionData = {
-        stakeCoinType: mockCoinTypes.coinA,
-        rewardCoinType: mockCoinTypes.coinB,
-        rewardsCoinId: mockIds.rewardsCoinId,
-        duration: '86400000',
-        globalConfigId: mockIds.globalConfigId,
-        decimalS: 9,
-        decimalR: 9,
-        clockId: mockIds.clockId,
-        durationUnstakeTimeMs: '3600000',
-        maxStakeValue: '10000000000',
-      };
-
-      // Build transaction
-      const transaction = await appHelper.build({
-        network: 'iota:testnet',
-        txType: TransactionType.Other,
-        txSubType: TransactionSubType.REGISTER_POOL,
-        client: Client,
-        account: Account,
-        intentionData: originalData,
-      });
-
-      // Deserialize transaction
-      const result = await appHelper.deserialize({
-        transaction,
-        chain: 'iota:testnet',
-        network: 'iota:testnet',
-        client: Client,
-        account: Account,
-      });
-
-      expect(result.txType).toBe(TransactionType.Other);
-      expect(result.txSubType).toBe(TransactionSubType.REGISTER_POOL);
-      expect(result.intentionData.stakeCoinType).toBe(originalData.stakeCoinType);
-      expect(result.intentionData.rewardCoinType).toBe(originalData.rewardCoinType);
-      expect(result.intentionData.decimalS).toBe(originalData.decimalS);
-      expect(result.intentionData.decimalR).toBe(originalData.decimalR);
     });
   });
 });

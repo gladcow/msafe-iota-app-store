@@ -30,6 +30,10 @@ import {
   SetTreasuryAdminAddressIntention,
   SetTreasuryAdminAddressIntentionData,
 } from './intentions/setTreasuryAdminAddress';
+import { SwapAForExactBIntention, SwapAForExactBIntentionData } from './intentions/swapAForExactB';
+import { SwapBForExactAIntention, SwapBForExactAIntentionData } from './intentions/swapBForExactA';
+import { SwapExactAForBIntention, SwapExactAForBIntentionData } from './intentions/swapExactAForB';
+import { SwapExactBForAIntention, SwapExactBForAIntentionData } from './intentions/swapExactBForA';
 import {
   WithdrawRewardToTreasuryIntention,
   WithdrawRewardToTreasuryIntentionData,
@@ -39,6 +43,10 @@ import { TransactionSubType } from './types';
 export type PoolsIntention =
   | AddLiquidityIntention
   | RemoveLiquidityIntention
+  | SwapExactAForBIntention
+  | SwapExactBForAIntention
+  | SwapAForExactBIntention
+  | SwapBForExactAIntention
   | InitPoolClassicIntention
   | InitPoolStableIntention
   | SetGlobalPauseStatusIntention
@@ -56,6 +64,10 @@ export type PoolsIntention =
 export type PoolsIntentionData =
   | AddLiquidityIntentionData
   | RemoveLiquidityIntentionData
+  | SwapExactAForBIntentionData
+  | SwapExactBForAIntentionData
+  | SwapAForExactBIntentionData
+  | SwapBForExactAIntentionData
   | InitPoolClassicIntentionData
   | InitPoolStableIntentionData
   | SetGlobalPauseStatusIntentionData
@@ -108,6 +120,18 @@ export class PoolsAppHelper implements MSafeAppHelper<PoolsIntentionData> {
         break;
       case TransactionSubType.REMOVE_LIQUIDITY:
         intention = RemoveLiquidityIntention.fromData(intentionData as RemoveLiquidityIntentionData);
+        break;
+      case TransactionSubType.SWAP_EXACT_A_FOR_B:
+        intention = SwapExactAForBIntention.fromData(intentionData as SwapExactAForBIntentionData);
+        break;
+      case TransactionSubType.SWAP_EXACT_B_FOR_A:
+        intention = SwapExactBForAIntention.fromData(intentionData as SwapExactBForAIntentionData);
+        break;
+      case TransactionSubType.SWAP_A_FOR_EXACT_B:
+        intention = SwapAForExactBIntention.fromData(intentionData as SwapAForExactBIntentionData);
+        break;
+      case TransactionSubType.SWAP_B_FOR_EXACT_A:
+        intention = SwapBForExactAIntention.fromData(intentionData as SwapBForExactAIntentionData);
         break;
       case TransactionSubType.INIT_POOL_CLASSIC:
         intention = InitPoolClassicIntention.fromData(intentionData as InitPoolClassicIntentionData);

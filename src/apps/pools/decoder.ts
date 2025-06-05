@@ -32,6 +32,23 @@ export class Decoder {
     const txData = tx.getData();
     this.txInputs = txData.inputs || [];
 
+    // Swap Operations
+    if (this.isSwapExactAForBTransaction(txData)) {
+      return this.decodeSwapExactAForB(txData);
+    }
+
+    if (this.isSwapExactBForATransaction(txData)) {
+      return this.decodeSwapExactBForA(txData);
+    }
+
+    if (this.isSwapAForExactBTransaction(txData)) {
+      return this.decodeSwapAForExactB(txData);
+    }
+
+    if (this.isSwapBForExactATransaction(txData)) {
+      return this.decodeSwapBForExactA(txData);
+    }
+
     // Liquidity Management
     if (this.isAddLiquidityTransaction(txData)) {
       return this.decodeAddLiquidity(txData);
@@ -174,6 +191,22 @@ export class Decoder {
     );
   }
 
+  private isSwapExactAForBTransaction(txData: any): boolean {
+    return this.hasMoveCallWithTarget(txData, config.moduleId, config.poolEntry, config.swapExactCoinAForCoinBMethod);
+  }
+
+  private isSwapExactBForATransaction(txData: any): boolean {
+    return this.hasMoveCallWithTarget(txData, config.moduleId, config.poolEntry, config.swapExactCoinBForCoinAMethod);
+  }
+
+  private isSwapAForExactBTransaction(txData: any): boolean {
+    return this.hasMoveCallWithTarget(txData, config.moduleId, config.poolEntry, config.swapCoinAForExactCoinBMethod);
+  }
+
+  private isSwapBForExactATransaction(txData: any): boolean {
+    return this.hasMoveCallWithTarget(txData, config.moduleId, config.poolEntry, config.swapCoinBForExactCoinAMethod);
+  }
+
   // ========== HELPER METHODS ==========
 
   private hasMoveCallWithTarget(txData: any, packageId: string, module: string, functionName: string): boolean {
@@ -281,6 +314,166 @@ export class Decoder {
         amountAMin: amountAMin.toString(),
         amountBMin: amountBMin.toString(),
         poolId,
+      },
+    };
+  }
+
+  private decodeSwapExactAForB(txData: any): DecodeResult {
+    const moveCallCmd = this.getMoveCallCommand(
+      txData,
+      config.moduleId,
+      config.poolEntry,
+      config.swapExactCoinAForCoinBMethod,
+    );
+
+    if (!moveCallCmd || !moveCallCmd.MoveCall) {
+      throw new Error('Invalid swap_exact_coinA_for_coinB transaction structure');
+    }
+
+    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+
+    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 5) {
+      throw new Error('Invalid swap_exact_coinA_for_coinB payload structure');
+    }
+
+    const [coinTypeA, coinTypeB] = typeArguments;
+
+    const poolId = this.extractObjectId(args[0]);
+    // skip args[1] - pauseStatusId
+    const coinAId = this.extractObjectId(args[2]);
+    const amountAIn = this.extractU64Value(args[3]);
+    const amountBOutMin = this.extractU64Value(args[4]);
+
+    return {
+      txType: TransactionType.Assets,
+      type: TransactionSubType.SWAP_EXACT_A_FOR_B,
+      intentionData: {
+        poolId,
+        coinTypeA,
+        coinTypeB,
+        coinAId,
+        amountAIn: amountAIn.toString(),
+        amountBOutMin: amountBOutMin.toString(),
+      },
+    };
+  }
+
+  private decodeSwapExactBForA(txData: any): DecodeResult {
+    const moveCallCmd = this.getMoveCallCommand(
+      txData,
+      config.moduleId,
+      config.poolEntry,
+      config.swapExactCoinBForCoinAMethod,
+    );
+
+    if (!moveCallCmd || !moveCallCmd.MoveCall) {
+      throw new Error('Invalid swap_exact_coinB_for_coinA transaction structure');
+    }
+
+    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+
+    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 5) {
+      throw new Error('Invalid swap_exact_coinB_for_coinA payload structure');
+    }
+
+    const [coinTypeA, coinTypeB] = typeArguments;
+
+    const poolId = this.extractObjectId(args[0]);
+    // skip args[1] - pauseStatusId
+    const coinBId = this.extractObjectId(args[2]);
+    const amountBIn = this.extractU64Value(args[3]);
+    const amountAOutMin = this.extractU64Value(args[4]);
+
+    return {
+      txType: TransactionType.Assets,
+      type: TransactionSubType.SWAP_EXACT_B_FOR_A,
+      intentionData: {
+        poolId,
+        coinTypeA,
+        coinTypeB,
+        coinBId,
+        amountBIn: amountBIn.toString(),
+        amountAOutMin: amountAOutMin.toString(),
+      },
+    };
+  }
+
+  private decodeSwapAForExactB(txData: any): DecodeResult {
+    const moveCallCmd = this.getMoveCallCommand(
+      txData,
+      config.moduleId,
+      config.poolEntry,
+      config.swapCoinAForExactCoinBMethod,
+    );
+
+    if (!moveCallCmd || !moveCallCmd.MoveCall) {
+      throw new Error('Invalid swap_coinA_for_exact_coinB transaction structure');
+    }
+
+    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+
+    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 5) {
+      throw new Error('Invalid swap_coinA_for_exact_coinB payload structure');
+    }
+
+    const [coinTypeA, coinTypeB] = typeArguments;
+
+    const poolId = this.extractObjectId(args[0]);
+    // skip args[1] - pauseStatusId
+    const coinAId = this.extractObjectId(args[2]);
+    const amountAMax = this.extractU64Value(args[3]);
+    const amountBOut = this.extractU64Value(args[4]);
+
+    return {
+      txType: TransactionType.Assets,
+      type: TransactionSubType.SWAP_A_FOR_EXACT_B,
+      intentionData: {
+        poolId,
+        coinTypeA,
+        coinTypeB,
+        coinAId,
+        amountAMax: amountAMax.toString(),
+        amountBOut: amountBOut.toString(),
+      },
+    };
+  }
+
+  private decodeSwapBForExactA(txData: any): DecodeResult {
+    const moveCallCmd = this.getMoveCallCommand(
+      txData,
+      config.moduleId,
+      config.poolEntry,
+      config.swapCoinBForExactCoinAMethod,
+    );
+
+    if (!moveCallCmd || !moveCallCmd.MoveCall) {
+      throw new Error('Invalid swap_coinB_for_exact_coinA transaction structure');
+    }
+
+    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+
+    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 5) {
+      throw new Error('Invalid swap_coinB_for_exact_coinA payload structure');
+    }
+
+    const [coinTypeA, coinTypeB] = typeArguments;
+
+    const poolId = this.extractObjectId(args[0]);
+    // skip args[1] - pauseStatusId
+    const coinBId = this.extractObjectId(args[2]);
+    const amountBMax = this.extractU64Value(args[3]);
+    const amountAOut = this.extractU64Value(args[4]);
+
+    return {
+      txType: TransactionType.Assets,
+      type: TransactionSubType.SWAP_B_FOR_EXACT_A,
+      intentionData: {
+        poolId,
+        coinTypeA,
+        coinTypeB,
+        coinBId,
+        amountBMax: amountBMax.toString(),
+        amountAOut: amountAOut.toString(),
       },
     };
   }
