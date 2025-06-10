@@ -44,7 +44,7 @@
   ],
   "dependencies": {
     "sort-keys-recursive": "^2.1.10",
-    "@virtue/sdk": "https://github.com/Virtue-CDP/virtue-sdk.git#58e12447abefa3bd47d480e5f00d0a23612d800d"
+    "@virtue/sdk": "https://github.com/Virtue-CDP/virtue-sdk.git"
   },
   "devDependencies": {
     "@iota/iota-sdk": "^1.1.0",

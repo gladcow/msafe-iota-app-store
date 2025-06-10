@@ -1,29 +1,43 @@
 import { bcs } from '@iota/iota-sdk/bcs';
 import { Transaction } from '@iota/iota-sdk/transactions';
-import { TransactionType, createLoginMessage } from '@msafe/iota-utils';
+import { TransactionType } from '@msafe/iota-utils';
+import { Logger } from 'tslog';
 
 import { DecodeResult, TransactionSubType } from './types';
-import { ManagePositionIntentionData } from './types/api';
-import { COINS_TYPE_LIST } from '@virtue/sdk';
-import { Logger } from 'tslog';
+import { DepositStabilityPoolIntentionData, ManagePositionIntentionData } from './types/api';
 
 export const logger = new Logger({ name: 'Virtue' });
 export class Decoder {
   constructor(public readonly transaction: Transaction) {}
 
   decode() {
+    logger.info(this.commands);
     if (this.isManagePositionTransaction()) {
       return this.decodeManagePosition();
+    }
+
+    if (this.isDepositStabilityPoolTransaction()) {
+      return this.depositStabilityPool();
     }
     throw new Error(`Unknown transaction type`);
   }
 
-  // validate function to check function signature
+  // validate function by checking function signature
   private isManagePositionTransaction() {
     return (
       !!this.getMoveCallModuleCommand('manage', 'request') &&
       !!this.getMoveCallModuleCommand('vault', 'manage_position')
     );
+  }
+
+  private isDepositStabilityPoolTransaction() {
+    // TODO: typo
+    return !!this.getMoveCallModuleCommand('stablility_pool', 'deposit');
+  }
+
+  private isWithdrawStabilityPoolTransaction() {
+    // TODO: typo
+    return !!this.getMoveCallModuleCommand('stablility_pool', 'withdraw');
   }
 
   // utils functions
@@ -41,6 +55,10 @@ export class Decoder {
 
   private getSplitCoinsCommands() {
     return this.commands.filter((command) => command.$kind === 'SplitCoins');
+  }
+
+  private GetTransferObjectsCommands() {
+    return this.commands.filter((command) => command.$kind === 'TransferObjects');
   }
 
   private getZeroCoinsCommands() {
@@ -64,6 +82,15 @@ export class Decoder {
     }
 
     return bcs.U64.fromBase64(input.Pure.bytes);
+  }
+
+  private getPureInputAddress(idx: number) {
+    const input = this.inputs[idx];
+    if (input.$kind !== 'Pure') {
+      throw new Error('not pure argument');
+    }
+
+    return bcs.Address.fromBase64(input.Pure.bytes);
   }
 
   // decode transactions
@@ -178,11 +205,51 @@ export class Decoder {
       intentionData.withdrawAmount = this.getPureInputU64(withdrawAmountArgument.Input);
     }
 
-    logger.info({ intentionData });
-
     return {
       txType: TransactionType.Other,
       type: TransactionSubType.ManagePosition,
+      intentionData,
+    };
+  }
+
+  private depositStabilityPool(): DecodeResult {
+    const intentionData = {
+      vusdAmount: '',
+      recipient: undefined,
+    } as DepositStabilityPoolIntentionData;
+
+    const splitCoinsCommands = this.getSplitCoinsCommands();
+
+    if (splitCoinsCommands.length !== 1) {
+      throw Error('Unhandled transaction');
+    }
+
+    // vusdAmount
+    const splitCoinsCommand = splitCoinsCommands[0];
+    if (splitCoinsCommand.$kind === 'SplitCoins') {
+      const vusdAmount = splitCoinsCommand.SplitCoins.amounts[0];
+      if (vusdAmount.$kind === 'Input') {
+        intentionData.vusdAmount = this.getPureInputU64(vusdAmount.Input);
+      }
+    }
+
+    // recipient
+    const transferObjectsCommands = this.GetTransferObjectsCommands();
+    if (transferObjectsCommands.length !== 1) {
+      throw Error('Unhandled transaction');
+    }
+
+    const transferObjectsCommand = transferObjectsCommands[0];
+    if (transferObjectsCommand.$kind === 'TransferObjects') {
+      const recipient = transferObjectsCommand.TransferObjects.address;
+      if (recipient.$kind === 'Input') {
+        intentionData.recipient = this.getPureInputAddress(recipient.Input);
+      }
+    }
+
+    return {
+      txType: TransactionType.Other,
+      type: TransactionSubType.DepositStabilityPool,
       intentionData,
     };
   }

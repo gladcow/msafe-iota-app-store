@@ -4,6 +4,7 @@ import { VirtueIntentionData } from '@/apps/virtue/types/helper';
 
 export enum TransactionSubType {
   ManagePosition = 'manage-position',
+  DepositStabilityPool = 'deposit-stability-pool',
 }
 
 export type DecodeResult = {

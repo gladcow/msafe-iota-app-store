@@ -5,3 +5,8 @@ export interface ManagePositionIntentionData {
   repaymentAmount: string;
   withdrawAmount: string;
 }
+
+export interface DepositStabilityPoolIntentionData {
+  vusdAmount: string;
+  recipient?: string;
+}
