@@ -4,14 +4,17 @@ import { TransactionType } from '@msafe/iota-utils';
 import { Logger } from 'tslog';
 
 import { DecodeResult, TransactionSubType } from './types';
-import { DepositStabilityPoolIntentionData, ManagePositionIntentionData } from './types/api';
+import {
+  DepositStabilityPoolIntentionData,
+  ManagePositionIntentionData,
+  WithdrawStabilityPoolIntentionData,
+} from './types/api';
 
 export const logger = new Logger({ name: 'Virtue' });
 export class Decoder {
   constructor(public readonly transaction: Transaction) {}
 
   decode() {
-    logger.info(this.commands);
     if (this.isManagePositionTransaction()) {
       return this.decodeManagePosition();
     }
@@ -19,6 +22,11 @@ export class Decoder {
     if (this.isDepositStabilityPoolTransaction()) {
       return this.depositStabilityPool();
     }
+
+    if (this.isWithdrawStabilityPoolTransaction()) {
+      return this.withdrawStabilityPool();
+    }
+
     throw new Error(`Unknown transaction type`);
   }
 
@@ -32,12 +40,18 @@ export class Decoder {
 
   private isDepositStabilityPoolTransaction() {
     // TODO: typo
-    return !!this.getMoveCallModuleCommand('stablility_pool', 'deposit');
+    return (
+      !!this.getMoveCallModuleCommand('stablility_pool', 'deposit') &&
+      !this.getMoveCallModuleCommand('stablility_pool', 'withdraw')
+    );
   }
 
   private isWithdrawStabilityPoolTransaction() {
     // TODO: typo
-    return !!this.getMoveCallModuleCommand('stablility_pool', 'withdraw');
+    return (
+      !!this.getMoveCallModuleCommand('stablility_pool', 'withdraw') &&
+      !!this.getMoveCallModuleCommand('stablility_pool', 'withdraw')
+    );
   }
 
   // utils functions
@@ -250,6 +264,48 @@ export class Decoder {
     return {
       txType: TransactionType.Other,
       type: TransactionSubType.DepositStabilityPool,
+      intentionData,
+    };
+  }
+
+  private withdrawStabilityPool(): DecodeResult {
+    const intentionData = {
+      vusdAmount: '',
+      recipient: undefined,
+    } as WithdrawStabilityPoolIntentionData;
+
+    const splitCoinsCommands = this.getSplitCoinsCommands();
+
+    if (splitCoinsCommands.length !== 1) {
+      throw Error('Unhandled transaction');
+    }
+
+    // vusdAmount
+    const splitCoinsCommand = splitCoinsCommands[0];
+    if (splitCoinsCommand.$kind === 'SplitCoins') {
+      const vusdAmount = splitCoinsCommand.SplitCoins.amounts[0];
+      if (vusdAmount.$kind === 'Input') {
+        intentionData.vusdAmount = this.getPureInputU64(vusdAmount.Input);
+      }
+    }
+
+    // recipient
+    const transferObjectsCommands = this.GetTransferObjectsCommands();
+    if (transferObjectsCommands.length !== 1) {
+      throw Error('Unhandled transaction');
+    }
+
+    const transferObjectsCommand = transferObjectsCommands[0];
+    if (transferObjectsCommand.$kind === 'TransferObjects') {
+      const recipient = transferObjectsCommand.TransferObjects.address;
+      if (recipient.$kind === 'Input') {
+        intentionData.recipient = this.getPureInputAddress(recipient.Input);
+      }
+    }
+
+    return {
+      txType: TransactionType.Other,
+      type: TransactionSubType.WithdrawStabilityPool,
       intentionData,
     };
   }

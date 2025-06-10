@@ -10,3 +10,8 @@ export interface DepositStabilityPoolIntentionData {
   vusdAmount: string;
   recipient?: string;
 }
+
+export interface WithdrawStabilityPoolIntentionData {
+  vusdAmount: string;
+  recipient?: string;
+}
