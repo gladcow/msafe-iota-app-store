@@ -1,6 +1,7 @@
+import { getFullnodeUrl, IotaClient } from '@iota/iota-sdk/client';
 import { Transaction } from '@iota/iota-sdk/transactions';
 import { normalizeIotaAddress } from '@iota/iota-sdk/utils';
-import { WalletAccount } from '@iota/wallet-standard';
+import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { HexToUint8Array } from '@msafe/iota-utils';
 import {
   buildManagePositionTx,
@@ -28,6 +29,22 @@ describe('Bucket App', () => {
   };
   const network: IotaNetworks = 'iota:testnet';
   const virtueClient = getVirtueClient(network, testWallet);
+  const iotaClient = new IotaClient({ url: getFullnodeUrl('testnet') });
+
+  function getDecoder(tx: Transaction) {
+    const input = {
+      network,
+      client: iotaClient,
+      account: testWallet,
+      transaction: tx,
+      chain: network,
+    } as IotaSignTransactionInput & {
+      network: IotaNetworks;
+      client: IotaClient;
+      account: WalletAccount;
+    };
+    return new Decoder(input);
+  }
 
   // --- Position ---
   it('Test open position', async () => {
@@ -52,8 +69,8 @@ describe('Bucket App', () => {
       withdrawAmount,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
@@ -86,8 +103,8 @@ describe('Bucket App', () => {
       withdrawAmount,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
@@ -120,8 +137,8 @@ describe('Bucket App', () => {
       withdrawAmount,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
@@ -154,8 +171,8 @@ describe('Bucket App', () => {
       withdrawAmount,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
@@ -188,8 +205,8 @@ describe('Bucket App', () => {
       withdrawAmount,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
@@ -216,8 +233,8 @@ describe('Bucket App', () => {
       recipient,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('deposit-stability-pool');
     const intentionData = result.intentionData as DepositStabilityPoolIntentionData;
@@ -241,8 +258,8 @@ describe('Bucket App', () => {
       undefined,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('deposit-stability-pool');
     const intentionData = result.intentionData as DepositStabilityPoolIntentionData;
@@ -265,8 +282,8 @@ describe('Bucket App', () => {
       recipient,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('withdraw-stability-pool');
     const intentionData = result.intentionData as WithdrawStabilityPoolIntentionData;
@@ -289,8 +306,8 @@ describe('Bucket App', () => {
       undefined,
     );
 
-    const decoder = new Decoder(tx);
-    const result = decoder.decode();
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
 
     expect(result.type).toBe('withdraw-stability-pool');
     const intentionData = result.intentionData as WithdrawStabilityPoolIntentionData;

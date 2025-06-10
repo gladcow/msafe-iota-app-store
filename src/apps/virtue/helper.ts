@@ -1,6 +1,6 @@
 import { IotaClient } from '@iota/iota-sdk/dist/cjs/client';
 import { Transaction } from '@iota/iota-sdk/dist/cjs/transactions';
-import { IdentifierString, IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
+import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
 
 import { IotaNetworks } from '@/types';
@@ -21,8 +21,6 @@ export type VirtueIntention = ManagePositionIntention | DepositStabilityPoolInte
 
 export class VirtueHelper implements MSafeAppHelper<VirtueIntentionData> {
   application = 'virtue';
-
-  supportSDK = '@iota/iota-sdk' as const;
 
   async deserialize(
     input: IotaSignTransactionInput & { network: IotaNetworks; client: IotaClient; account: WalletAccount },
@@ -63,6 +61,6 @@ export class VirtueHelper implements MSafeAppHelper<VirtueIntentionData> {
         throw new Error('not implemented');
     }
 
-    return intention.build({ client, account });
+    return intention.build({ client, account, network: network as IotaNetworks, txType, txSubType });
   }
 }
