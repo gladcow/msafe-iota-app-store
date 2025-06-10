@@ -1,0 +1,189 @@
+import { bcs } from '@iota/iota-sdk/bcs';
+import { Transaction } from '@iota/iota-sdk/transactions';
+import { TransactionType, createLoginMessage } from '@msafe/iota-utils';
+
+import { DecodeResult, TransactionSubType } from './types';
+import { ManagePositionIntentionData } from './types/api';
+import { COINS_TYPE_LIST } from '@virtue/sdk';
+import { Logger } from 'tslog';
+
+export const logger = new Logger({ name: 'Virtue' });
+export class Decoder {
+  constructor(public readonly transaction: Transaction) {}
+
+  decode() {
+    if (this.isManagePositionTransaction()) {
+      return this.decodeManagePosition();
+    }
+    throw new Error(`Unknown transaction type`);
+  }
+
+  // validate function to check function signature
+  private isManagePositionTransaction() {
+    return (
+      !!this.getMoveCallModuleCommand('manage', 'request') &&
+      !!this.getMoveCallModuleCommand('vault', 'manage_position')
+    );
+  }
+
+  // utils functions
+  private get inputs() {
+    return this.transaction.getData().inputs;
+  }
+
+  private get commands() {
+    return this.transaction.getData().commands.map((c, index) => ({ ...c, index }));
+  }
+
+  private getMoveCallCommand(fn: string) {
+    return this.commands.find((command) => command.$kind === 'MoveCall' && command.MoveCall.function === fn);
+  }
+
+  private getSplitCoinsCommands() {
+    return this.commands.filter((command) => command.$kind === 'SplitCoins');
+  }
+
+  private getZeroCoinsCommands() {
+    return this.commands.filter(
+      (command) =>
+        command.$kind === 'MoveCall' && command.MoveCall.module === 'coin' && command.MoveCall.function === 'zero',
+    );
+  }
+
+  private getMoveCallModuleCommand(module: string, fn: string) {
+    return this.commands.find(
+      (command) =>
+        command.$kind === 'MoveCall' && command.MoveCall.module === module && command.MoveCall.function === fn,
+    );
+  }
+
+  private getPureInputU64(idx: number) {
+    const input = this.inputs[idx];
+    if (input.$kind !== 'Pure') {
+      throw new Error('not pure argument');
+    }
+
+    return bcs.U64.fromBase64(input.Pure.bytes);
+  }
+
+  // decode transactions
+  private decodeManagePosition(): DecodeResult {
+    const intentionData = {
+      collateralType: '',
+      collateralAmount: '',
+      borrowAmount: '',
+      repaymentAmount: '',
+      withdrawAmount: '',
+    } as ManagePositionIntentionData;
+
+    const requestManagePositionCommand = this.getMoveCallModuleCommand('manage', 'request');
+    const splitCoinsCommands = this.getSplitCoinsCommands().filter((c) => c.index < requestManagePositionCommand.index);
+    const zeroCoinsCommands = this.getZeroCoinsCommands().filter((c) => c.index < requestManagePositionCommand.index);
+
+    if (
+      !(
+        splitCoinsCommands.length === 2 ||
+        zeroCoinsCommands.length === 2 ||
+        (splitCoinsCommands.length === 1 && zeroCoinsCommands.length === 1)
+      )
+    ) {
+      throw Error('Unhandled Transaction');
+    }
+
+    // find "collateralAmount & repaymentAmount" from getInputCoin command
+    // both coins come from SplitCoins
+    if (splitCoinsCommands.length === 2) {
+      const sortedSplitCoinsCommands = splitCoinsCommands.sort((a, b) => a.index - b.index);
+      if (sortedSplitCoinsCommands[0].$kind === 'SplitCoins') {
+        const inputCoinObject = sortedSplitCoinsCommands[0].SplitCoins.amounts[0];
+        if (inputCoinObject.$kind === 'Input') {
+          intentionData.collateralAmount = this.getPureInputU64(inputCoinObject.Input);
+        }
+      }
+
+      if (sortedSplitCoinsCommands[1].$kind === 'SplitCoins') {
+        const inputCoinObject = sortedSplitCoinsCommands[0].SplitCoins.amounts[1];
+        if (inputCoinObject.$kind === 'Input') {
+          intentionData.repaymentAmount = this.getPureInputU64(inputCoinObject.Input);
+        }
+      }
+    } else if (zeroCoinsCommands.length === 2) {
+      // both coins come from coinZero command
+      const sortedZeroCommands = zeroCoinsCommands.sort((a, b) => a.index - b.index);
+      if (sortedZeroCommands[0].$kind === 'MoveCall') {
+        if (sortedZeroCommands[0].MoveCall.module === 'coin' && sortedZeroCommands[0].MoveCall.function === 'zero') {
+          intentionData.collateralAmount = '0';
+        }
+      }
+
+      if (sortedZeroCommands[1].$kind === 'MoveCall') {
+        if (sortedZeroCommands[1].MoveCall.module === 'coin' && sortedZeroCommands[1].MoveCall.function === 'zero') {
+          intentionData.repaymentAmount = '0';
+        }
+      }
+    } else {
+      // when we have single zeroCoinsCommands & splitCoinsCommands respectively
+      const zeroCoinsCommand = zeroCoinsCommands[0];
+      const splitCoinsCommand = splitCoinsCommands[0];
+
+      if (zeroCoinsCommand.index < splitCoinsCommand.index) {
+        // [collateralAmount, repaymentAmount] = [zeroCoinsCommand, splitCoinsCommand]
+        // collateralAmount
+        if (
+          zeroCoinsCommand.$kind === 'MoveCall' &&
+          zeroCoinsCommand.MoveCall.module === 'coin' &&
+          zeroCoinsCommand.MoveCall.function === 'zero'
+        ) {
+          intentionData.collateralAmount = '0';
+        }
+        // repaymentAmount
+        if (splitCoinsCommand.$kind === 'SplitCoins') {
+          const repaymentAmount = splitCoinsCommand.SplitCoins.amounts[0];
+          if (repaymentAmount.$kind === 'Input') {
+            intentionData.repaymentAmount = this.getPureInputU64(repaymentAmount.Input);
+          }
+        }
+      } else {
+        // [collateralAmount, repaymentAmount] = [splitCoinsCommand, zeroCoinsCommand]
+        // collateralAmount
+        if (splitCoinsCommand.$kind === 'SplitCoins') {
+          const collateralAmount = splitCoinsCommand.SplitCoins.amounts[0];
+          if (collateralAmount.$kind === 'Input') {
+            intentionData.collateralAmount = this.getPureInputU64(collateralAmount.Input);
+          }
+        }
+        // repaymentAmount
+        if (
+          zeroCoinsCommand.$kind === 'MoveCall' &&
+          zeroCoinsCommand.MoveCall.module === 'coin' &&
+          zeroCoinsCommand.MoveCall.function === 'zero'
+        ) {
+          intentionData.repaymentAmount = '0';
+        }
+      }
+    }
+
+    // collateralType
+    const collateralType = requestManagePositionCommand.MoveCall.typeArguments[0];
+    intentionData.collateralType = collateralType;
+
+    // borrowAmount
+    const borrowAmountArgument = requestManagePositionCommand.MoveCall.arguments[3];
+    if (borrowAmountArgument.$kind === 'Input') {
+      intentionData.borrowAmount = this.getPureInputU64(borrowAmountArgument.Input);
+    }
+    // withdrawAmount
+    const withdrawAmountArgument = requestManagePositionCommand.MoveCall.arguments[5];
+    if (withdrawAmountArgument.$kind === 'Input') {
+      intentionData.withdrawAmount = this.getPureInputU64(withdrawAmountArgument.Input);
+    }
+
+    logger.info({ intentionData });
+
+    return {
+      txType: TransactionType.Other,
+      type: TransactionSubType.ManagePosition,
+      intentionData,
+    };
+  }
+}
