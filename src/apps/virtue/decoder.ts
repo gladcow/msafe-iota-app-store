@@ -1,7 +1,11 @@
 import { bcs } from '@iota/iota-sdk/bcs';
+import { IotaClient } from '@iota/iota-sdk/client';
 import { Transaction } from '@iota/iota-sdk/transactions';
+import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
 import { Logger } from 'tslog';
+
+import { IotaNetworks } from '@/types';
 
 import { DecodeResult, TransactionSubType } from './types';
 import {
@@ -11,10 +15,24 @@ import {
 } from './types/api';
 
 export const logger = new Logger({ name: 'Virtue' });
-export class Decoder {
-  constructor(public readonly transaction: Transaction) {}
 
-  decode() {
+export class Decoder {
+  constructor(
+    private readonly input: IotaSignTransactionInput & {
+      network: IotaNetworks;
+      client: IotaClient;
+      account: WalletAccount;
+    },
+  ) {}
+
+  async decode(): Promise<DecodeResult> {
+    const { transaction } = this.input;
+
+    const txContent = await transaction.toJSON();
+    const tx = Transaction.from(txContent);
+
+    this.transaction = tx;
+
     if (this.isManagePositionTransaction()) {
       return this.decodeManagePosition();
     }
@@ -29,6 +47,13 @@ export class Decoder {
 
     throw new Error(`Unknown transaction type`);
   }
+
+  // Store transaction inputs for value extractionAdd commentMore actions
+  private transaction: Transaction;
+
+  private txInputs: any[] = [];
+
+  private txData: any;
 
   // validate function by checking function signature
   private isManagePositionTransaction() {
