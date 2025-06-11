@@ -1,6 +1,6 @@
 const config = {
   // Package information
-  moduleId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+  moduleId: '0x8f59ae4ad83043ba2aac7c7680d4fd48402df4371b73a81ea69abd4b1d2a6e23',
 
   // Module entries
   poolEntry: 'amm_entries',
@@ -40,9 +40,9 @@ const config = {
   setEmergencyAdminAddressMethod: 'set_emergency_admin_address',
 
   // Global objects and shared resources
-  pauseStatusId: '0x0000000000000000000000000000000000000000000000000000000000000002',
-  globalCreatedPoolsId: '0x0000000000000000000000000000000000000000000000000000000000000003',
-  globalConfigId: '0x0000000000000000000000000000000000000000000000000000000000000004',
+  pauseStatusId: '0xe7d07303dfdd724d6eaed34f9ee7bda1e9559faa80b44f7db9cf302cffad17b8',
+  globalCreatedPoolsId: '0xa5ade62668e8501a71b60ebccde066427bc8c4c46741c589e3dc2492e27db57d',
+  globalConfigId: '0xba6c1429b8457a57f4d5851d470168346814097a87d9e469c1a481a672e54b87',
   clockId: '0x6',
 };
 
