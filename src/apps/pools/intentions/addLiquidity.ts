@@ -16,6 +16,7 @@ export interface AddLiquidityIntentionData {
   amountAMin: string;
   amountBMin: string;
   poolId: string;
+  pauseStatusId: string;
 }
 
 export class AddLiquidityIntention extends BaseIntention<AddLiquidityIntentionData> {
@@ -41,7 +42,9 @@ export class AddLiquidityIntention extends BaseIntention<AddLiquidityIntentionDa
       typeArguments: [this.data.coinTypeA, this.data.coinTypeB],
       arguments: [
         transaction.object(this.data.poolId),
-        transaction.object(config.pauseStatusId),
+        transaction.object(this.data.pauseStatusId),
+        transaction.object(this.data.coinTypeA),
+        transaction.object(this.data.coinTypeB),
         transaction.pure.u64(this.data.amountADesired),
         transaction.pure.u64(this.data.amountBDesired),
         transaction.pure.u64(this.data.amountAMin),
