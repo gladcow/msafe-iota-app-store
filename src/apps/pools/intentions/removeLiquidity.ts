@@ -11,10 +11,12 @@ import { TransactionSubType } from '../types';
 export interface RemoveLiquidityIntentionData {
   coinTypeA: string;
   coinTypeB: string;
+  coinLpId: string;
   amountLp: string;
   amountAMin: string;
   amountBMin: string;
   poolId: string;
+  pauseStatusId: string;
 }
 
 export class RemoveLiquidityIntention extends BaseIntention<RemoveLiquidityIntentionData> {
@@ -40,7 +42,8 @@ export class RemoveLiquidityIntention extends BaseIntention<RemoveLiquidityInten
       typeArguments: [this.data.coinTypeA, this.data.coinTypeB],
       arguments: [
         transaction.object(this.data.poolId),
-        transaction.object(config.pauseStatusId),
+        transaction.object(this.data.pauseStatusId),
+        transaction.object(this.data.coinLpId),
         transaction.pure.u64(this.data.amountLp),
         transaction.pure.u64(this.data.amountAMin),
         transaction.pure.u64(this.data.amountBMin),

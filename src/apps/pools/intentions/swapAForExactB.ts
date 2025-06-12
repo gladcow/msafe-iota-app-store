@@ -15,6 +15,7 @@ export interface SwapAForExactBIntentionData {
   coinAId: string;
   amountAMax: string;
   amountBOut: string;
+  pauseStatusId: string;
 }
 
 export class SwapAForExactBIntention extends BaseIntention<SwapAForExactBIntentionData> {
@@ -40,7 +41,7 @@ export class SwapAForExactBIntention extends BaseIntention<SwapAForExactBIntenti
       typeArguments: [this.data.coinTypeA, this.data.coinTypeB],
       arguments: [
         transaction.object(this.data.poolId),
-        transaction.object(config.pauseStatusId),
+        transaction.object(this.data.pauseStatusId),
         transaction.object(this.data.coinAId),
         transaction.pure.u64(this.data.amountAMax),
         transaction.pure.u64(this.data.amountBOut),
