@@ -1,6 +1,5 @@
 import { Transaction } from '@iota/iota-sdk/transactions';
 import { WalletAccount } from '@iota/wallet-standard';
-import { buildManagePositionTx, COLLATERAL_COIN } from '@virtue/sdk';
 
 import { IotaNetworks } from '@/types';
 
@@ -12,20 +11,19 @@ export const getManagePositionTx = async (
   account: WalletAccount,
   network: IotaNetworks,
 ): Promise<Transaction> => {
-  const { collateralType, collateralAmount, borrowAmount, repaymentAmount, withdrawAmount } = txbParams;
+  const { collateralSymbol, depositAmount, borrowAmount, repaymentAmount, withdrawAmount, accountObjId, recipient } =
+    txbParams;
 
-  const tx = new Transaction();
   const virtueClient = getVirtueClient(network, account);
-  await buildManagePositionTx(
-    virtueClient,
-    tx as any,
-    account.address,
-    collateralType as COLLATERAL_COIN,
-    collateralAmount,
+  const tx = await virtueClient.buildManagePositionTransaction({
+    collateralSymbol,
+    depositAmount,
     borrowAmount,
     repaymentAmount,
     withdrawAmount,
-  );
+    accountObjId,
+    recipient,
+  });
 
   return tx;
 };

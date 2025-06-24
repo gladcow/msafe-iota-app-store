@@ -1,17 +1,7 @@
-export interface ManagePositionIntentionData {
-  collateralType: string;
-  collateralAmount: string;
-  borrowAmount: string;
-  repaymentAmount: string;
-  withdrawAmount: string;
-}
+import { VirtueClient } from '@virtue/sdk';
 
-export interface DepositStabilityPoolIntentionData {
-  vusdAmount: string;
-  recipient?: string;
-}
+export type ManagePositionIntentionData = Parameters<VirtueClient['buildManagePositionTransaction']>[0];
 
-export interface WithdrawStabilityPoolIntentionData {
-  vusdAmount: string;
-  recipient?: string;
-}
+export type DepositStabilityPoolIntentionData = Parameters<VirtueClient['buildDepositStabilityPoolTransaction']>[0];
+
+export type WithdrawStabilityPoolIntentionData = Parameters<VirtueClient['buildWithdrawStabilityPoolTransaction']>[0];

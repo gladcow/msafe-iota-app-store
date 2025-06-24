@@ -1,14 +1,8 @@
 import { getFullnodeUrl, IotaClient } from '@iota/iota-sdk/client';
 import { Transaction } from '@iota/iota-sdk/transactions';
-import { normalizeIotaAddress } from '@iota/iota-sdk/utils';
 import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { HexToUint8Array } from '@msafe/iota-utils';
-import {
-  buildManagePositionTx,
-  buildDepositStabilityPoolTx,
-  buildWithdrawStabilityPoolTx,
-  COINS_TYPE_LIST,
-} from '@virtue/sdk';
+import { COLLATERAL_COIN } from '@virtue/sdk';
 
 import { getVirtueClient } from '@/apps/virtue/api/config';
 import { Decoder } from '@/apps/virtue/decoder';
@@ -19,7 +13,7 @@ import {
 } from '@/apps/virtue/types/api';
 import { IotaNetworks } from '@/types';
 
-describe('Bucket App', () => {
+describe('Virtue App', () => {
   const testWallet: WalletAccount = {
     // make sure wallet address has enough token to simulate the below test scenarios
     address: '0xbb8fb81588760a267589c3d09d664b227981266d40d00666f84595c6068d754b',
@@ -27,7 +21,7 @@ describe('Bucket App', () => {
     chains: ['iota:mainnet'],
     features: [],
   };
-  const network: IotaNetworks = 'iota:testnet';
+  const network: IotaNetworks = 'iota:mainnet';
   const virtueClient = getVirtueClient(network, testWallet);
   const iotaClient = new IotaClient({ url: getFullnodeUrl('testnet') });
 
@@ -48,270 +42,173 @@ describe('Bucket App', () => {
 
   // --- Position ---
   it('Test open position', async () => {
-    const tx = new Transaction();
-
-    const collateralAmount = (10 ** 9).toString();
+    const collateralSymbol: COLLATERAL_COIN = 'IOTA';
+    const depositAmount = (10 ** 9).toString();
     const borrowAmount = (10 ** 6).toString();
     const repaymentAmount = (0).toString();
     const withdrawAmount = (0).toString();
-    await buildManagePositionTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      'IOTA',
-      // collateralAmount
-      collateralAmount,
-      // borrowAmount
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
       borrowAmount,
-      // repaymentAmount
       repaymentAmount,
-      // withdrawAmount
       withdrawAmount,
-    );
+      accountObjId: undefined,
+    });
 
     const decoder = getDecoder(tx);
     const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
-    expect(intentionData.collateralType).toBe(COINS_TYPE_LIST.IOTA);
-    expect(intentionData.collateralAmount).toBe(collateralAmount);
+    expect(intentionData.collateralSymbol).toBe('IOTA');
+    expect(intentionData.depositAmount).toBe(depositAmount);
     expect(intentionData.borrowAmount).toBe(borrowAmount);
     expect(intentionData.repaymentAmount).toBe(repaymentAmount);
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
   it('Test position deposit', async () => {
-    const tx = new Transaction();
-
-    const collateralAmount = (10 ** 9).toString();
+    const collateralSymbol: COLLATERAL_COIN = 'IOTA';
+    const depositAmount = (10 ** 9).toString();
     const borrowAmount = (0).toString();
     const repaymentAmount = (0).toString();
     const withdrawAmount = (0).toString();
-    await buildManagePositionTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      'IOTA',
-      // collateralAmount
-      collateralAmount,
-      // borrowAmount
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
       borrowAmount,
-      // repaymentAmount
       repaymentAmount,
-      // withdrawAmount
       withdrawAmount,
-    );
+      accountObjId: undefined,
+    });
 
     const decoder = getDecoder(tx);
     const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
-    expect(intentionData.collateralType).toBe(COINS_TYPE_LIST.IOTA);
-    expect(intentionData.collateralAmount).toBe(collateralAmount);
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
     expect(intentionData.borrowAmount).toBe(borrowAmount);
     expect(intentionData.repaymentAmount).toBe(repaymentAmount);
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
   it('Test position borrow', async () => {
-    const tx = new Transaction();
-
-    const collateralAmount = (0).toString();
+    const collateralSymbol: COLLATERAL_COIN = 'IOTA';
+    const depositAmount = (0).toString();
     const borrowAmount = (10 ** 6).toString();
     const repaymentAmount = (0).toString();
     const withdrawAmount = (0).toString();
-    await buildManagePositionTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      'IOTA',
-      // collateralAmount
-      collateralAmount,
-      // borrowAmount
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
       borrowAmount,
-      // repaymentAmount
       repaymentAmount,
-      // withdrawAmount
       withdrawAmount,
-    );
+      accountObjId: undefined,
+    });
 
     const decoder = getDecoder(tx);
     const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
-    expect(intentionData.collateralType).toBe(COINS_TYPE_LIST.IOTA);
-    expect(intentionData.collateralAmount).toBe(collateralAmount);
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
     expect(intentionData.borrowAmount).toBe(borrowAmount);
     expect(intentionData.repaymentAmount).toBe(repaymentAmount);
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
   it('Test position withdraw', async () => {
-    const tx = new Transaction();
-
-    const collateralAmount = (0).toString();
+    const collateralSymbol: COLLATERAL_COIN = 'IOTA';
+    const depositAmount = (0).toString();
     const borrowAmount = (0).toString();
     const repaymentAmount = (0).toString();
     const withdrawAmount = (10 ** 9).toString();
-    await buildManagePositionTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      'IOTA',
-      // collateralAmount
-      collateralAmount,
-      // borrowAmount
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
       borrowAmount,
-      // repaymentAmount
       repaymentAmount,
-      // withdrawAmount
       withdrawAmount,
-    );
+      accountObjId: undefined,
+    });
 
     const decoder = getDecoder(tx);
     const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
-    expect(intentionData.collateralType).toBe(COINS_TYPE_LIST.IOTA);
-    expect(intentionData.collateralAmount).toBe(collateralAmount);
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
     expect(intentionData.borrowAmount).toBe(borrowAmount);
     expect(intentionData.repaymentAmount).toBe(repaymentAmount);
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
   it('Test position repay', async () => {
-    const tx = new Transaction();
-
-    const collateralAmount = (0).toString();
+    const collateralSymbol: COLLATERAL_COIN = 'IOTA';
+    const depositAmount = (0).toString();
     const borrowAmount = (0).toString();
     const repaymentAmount = (10 ** 9).toString();
     const withdrawAmount = (0).toString();
-    await buildManagePositionTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      'IOTA',
-      // collateralAmount
-      collateralAmount,
-      // borrowAmount
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
       borrowAmount,
-      // repaymentAmount
       repaymentAmount,
-      // withdrawAmount
       withdrawAmount,
-    );
+      accountObjId: undefined,
+    });
 
     const decoder = getDecoder(tx);
     const result = await decoder.decode();
 
     expect(result.type).toBe('manage-position');
     const intentionData = result.intentionData as ManagePositionIntentionData;
-    expect(intentionData.collateralType).toBe(COINS_TYPE_LIST.IOTA);
-    expect(intentionData.collateralAmount).toBe(collateralAmount);
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
     expect(intentionData.borrowAmount).toBe(borrowAmount);
     expect(intentionData.repaymentAmount).toBe(repaymentAmount);
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
+  // TODO: test borrow and deposit to stability pool
+
   // --- Tank ---
   it('Test deposit stability pool', async () => {
-    const tx = new Transaction();
+    const depositAmount = (10 ** 9).toString();
 
-    const vusdAmount = (10 ** 9).toString();
-    const recipient = normalizeIotaAddress('0xABC');
-    await buildDepositStabilityPoolTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      // vusdAmount
-      vusdAmount,
-      // recipient
-      recipient,
-    );
+    const tx = await virtueClient.buildDepositStabilityPoolTransaction({
+      depositAmount,
+    });
 
     const decoder = getDecoder(tx);
     const result = await decoder.decode();
 
     expect(result.type).toBe('deposit-stability-pool');
     const intentionData = result.intentionData as DepositStabilityPoolIntentionData;
-    expect(intentionData.vusdAmount).toBe(vusdAmount);
-    expect(intentionData.recipient).toBe(recipient);
-  });
-
-  it('Test deposit stability pool without recipient', async () => {
-    const tx = new Transaction();
-
-    const vusdAmount = (10 ** 6).toString();
-    // recipient become sender
-    const recipient = normalizeIotaAddress(testWallet.address);
-    await buildDepositStabilityPoolTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      // vusdAmount
-      vusdAmount,
-      // recipient
-      undefined,
-    );
-
-    const decoder = getDecoder(tx);
-    const result = await decoder.decode();
-
-    expect(result.type).toBe('deposit-stability-pool');
-    const intentionData = result.intentionData as DepositStabilityPoolIntentionData;
-    expect(intentionData.vusdAmount).toBe(vusdAmount);
-    expect(intentionData.recipient).toBe(recipient);
+    expect(intentionData.depositAmount).toBe(depositAmount);
   });
 
   it('Test withdraw stability pool', async () => {
-    const tx = new Transaction();
+    const withdrawAmount = (10 ** 6).toString();
 
-    const vusdAmount = (10 ** 6).toString();
-    const recipient = normalizeIotaAddress('0xABC');
-    await buildWithdrawStabilityPoolTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      // vusdAmount
-      vusdAmount,
-      // recipient
-      recipient,
-    );
+    const tx = await virtueClient.buildWithdrawStabilityPoolTransaction({ withdrawAmount });
 
     const decoder = getDecoder(tx);
     const result = await decoder.decode();
 
     expect(result.type).toBe('withdraw-stability-pool');
     const intentionData = result.intentionData as WithdrawStabilityPoolIntentionData;
-    expect(intentionData.vusdAmount).toBe(vusdAmount);
-    expect(intentionData.recipient).toBe(recipient);
-  });
-
-  it('Test withdraw stability pool without recipient', async () => {
-    const tx = new Transaction();
-
-    const vusdAmount = (10 ** 6).toString();
-    const recipient = testWallet.address;
-    await buildWithdrawStabilityPoolTx(
-      virtueClient,
-      tx as any,
-      testWallet.address,
-      // vusdAmount
-      vusdAmount,
-      // recipient
-      undefined,
-    );
-
-    const decoder = getDecoder(tx);
-    const result = await decoder.decode();
-
-    expect(result.type).toBe('withdraw-stability-pool');
-    const intentionData = result.intentionData as WithdrawStabilityPoolIntentionData;
-    expect(intentionData.vusdAmount).toBe(vusdAmount);
-    expect(intentionData.recipient).toBe(recipient);
+    expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 });
