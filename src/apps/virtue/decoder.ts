@@ -3,7 +3,6 @@ import { IotaClient } from '@iota/iota-sdk/client';
 import { Transaction } from '@iota/iota-sdk/transactions';
 import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
-import { Logger } from 'tslog';
 
 import { IotaNetworks } from '@/types';
 
@@ -15,7 +14,11 @@ import {
 } from './types/api';
 import { getCoinSymbolByType } from './types/helper';
 
-export const logger = new Logger({ name: 'Virtue' });
+import { Logger, ILogObj } from 'tslog';
+
+const logger = new Logger<ILogObj>({
+  name: 'Virtue',
+});
 
 export class Decoder {
   constructor(
@@ -28,11 +31,12 @@ export class Decoder {
 
   async decode(): Promise<DecodeResult> {
     const { transaction } = this.input;
-
     const txContent = await transaction.toJSON();
     const tx = Transaction.from(txContent);
 
     this.transaction = tx;
+    logger.info({ transactions: tx.blockData.transactions });
+    logger.info({ inputs: tx.blockData.inputs });
 
     if (this.isManagePositionTransaction()) {
       return this.decodeManagePosition();
@@ -174,8 +178,10 @@ export class Decoder {
       }
     }
     // depositAmount & repaymentAmount
-    const splitCoinsCommands = this.getSplitCoinsCommands().filter((c) => c.index < requestAccountCommand.index);
-    const zeroCoinsCommands = this.getZeroCoinsCommands().filter((c) => c.index < requestAccountCommand.index);
+    // we use the order of collectorNewCommand to deduct which commands related to depositAmount & repaymentAmount
+    const collectorNewCommand = this.getMoveCallModuleCommand('collector', 'new');
+    const splitCoinsCommands = this.getSplitCoinsCommands().filter((c) => c.index < collectorNewCommand.index);
+    const zeroCoinsCommands = this.getZeroCoinsCommands().filter((c) => c.index < collectorNewCommand.index);
 
     if (
       !(
@@ -199,7 +205,7 @@ export class Decoder {
       }
 
       if (sortedSplitCoinsCommands[1].$kind === 'SplitCoins') {
-        const inputCoinObject = sortedSplitCoinsCommands[0].SplitCoins.amounts[1];
+        const inputCoinObject = sortedSplitCoinsCommands[1].SplitCoins.amounts[0];
         if (inputCoinObject.$kind === 'Input') {
           intentionData.repaymentAmount = this.getPureInputU64(inputCoinObject.Input);
         }

@@ -36,7 +36,7 @@ export class DepositStabilityPoolIntention extends BaseIntention<DepositStabilit
   }
 }
 
-export class WithdrawStabilityPoolIntention extends BaseIntention<DepositStabilityPoolIntentionData> {
+export class WithdrawStabilityPoolIntention extends BaseIntention<WithdrawStabilityPoolIntentionData> {
   txType = TransactionType.Other;
 
   txSubType = TransactionSubType.WithdrawStabilityPool;
