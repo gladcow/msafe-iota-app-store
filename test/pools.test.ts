@@ -734,6 +734,27 @@ describe('Pools Protocol Wallet', () => {
 
       expect(parsed).toEqual(intentionData);
     });
+
+    it('Decoder should return same structure as RegisterPool intention', () => {
+      const intentionData: RegisterPoolIntentionData = {
+        stakeCoinType: 'stakeCoin',
+        rewardCoinType: 'rewardCoin',
+        rewardsCoinId: 'rewards123',
+        duration: '86400000',
+        decimalS: 8,
+        decimalR: 6,
+        durationUnstakeTimeMs: '3600000',
+        maxStakeValue: '1000000000',
+        globalConfigId: 'config123',
+        clockId: 'clock123',
+      };
+
+      const intention = RegisterPoolIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
+    });
   });
 
   // ========== NATIVE IOTA TESTS ==========
@@ -898,6 +919,105 @@ describe('Pools Protocol Wallet', () => {
           intentionData: {} as any,
         }),
       ).rejects.toThrow('Unsupported transaction subtype: UNSUPPORTED_TYPE');
+    });
+  });
+
+  describe('Decoder Structure Validation', () => {
+    it('Decoder should return same structure as AddLiquidity intention', () => {
+      const intentionData: AddLiquidityIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinAId: 'coinA123',
+        coinBId: 'coinB123',
+        amountADesired: '1000',
+        amountBDesired: '2000',
+        amountAMin: '950',
+        amountBMin: '1900',
+        pauseStatusId: 'pause123',
+      };
+
+      const intention = AddLiquidityIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
+    });
+
+    it('Decoder should return same structure as RemoveLiquidity intention', () => {
+      const intentionData: RemoveLiquidityIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        amountLp: '1000',
+        amountAMin: '950',
+        amountBMin: '1900',
+        coinLpId: 'coinLp123',
+        pauseStatusId: 'pause123',
+      };
+
+      const intention = RemoveLiquidityIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
+    });
+
+    it('Decoder should return same structure as SwapExactAForB intention', () => {
+      const intentionData: SwapExactAForBIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinAId: 'coinA123',
+        amountAIn: '1000',
+        amountBOutMin: '1900',
+        pauseStatusId: 'pause123',
+      };
+
+      const intention = SwapExactAForBIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
+    });
+
+    it('Decoder should return same structure as SwapAForExactB intention', () => {
+      const intentionData: SwapAForExactBIntentionData = {
+        poolId: 'pool123',
+        coinTypeA: 'coinA',
+        coinTypeB: 'coinB',
+        coinAId: 'coinA123',
+        amountAMax: '1100',
+        amountBOut: '2000',
+        pauseStatusId: 'pause123',
+      };
+
+      const intention = SwapAForExactBIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
+    });
+
+    it('Decoder should return same structure as RegisterPool intention', () => {
+      const intentionData: RegisterPoolIntentionData = {
+        stakeCoinType: 'stakeCoin',
+        rewardCoinType: 'rewardCoin',
+        rewardsCoinId: 'rewards123',
+        duration: '86400000',
+        decimalS: 8,
+        decimalR: 6,
+        durationUnstakeTimeMs: '3600000',
+        maxStakeValue: '1000000000',
+        globalConfigId: 'config123',
+        clockId: 'clock123',
+      };
+
+      const intention = RegisterPoolIntention.fromData(intentionData);
+      const serialized = intention.serialize();
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed).toEqual(intentionData);
     });
   });
 });
