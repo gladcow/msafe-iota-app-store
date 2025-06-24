@@ -11,11 +11,14 @@ import { TransactionSubType } from '../types';
 export interface AddLiquidityIntentionData {
   coinTypeA: string;
   coinTypeB: string;
+  coinAId: string;
+  coinBId: string;
   amountADesired: string;
   amountBDesired: string;
   amountAMin: string;
   amountBMin: string;
   poolId: string;
+  pauseStatusId: string;
 }
 
 export class AddLiquidityIntention extends BaseIntention<AddLiquidityIntentionData> {
@@ -28,7 +31,7 @@ export class AddLiquidityIntention extends BaseIntention<AddLiquidityIntentionDa
   }
 
   async build(input: { client: IotaClient; account: WalletAccount }): Promise<Transaction> {
-    const { client, account } = input;
+    const { account } = input;
 
     const transaction = new Transaction();
 
@@ -41,7 +44,9 @@ export class AddLiquidityIntention extends BaseIntention<AddLiquidityIntentionDa
       typeArguments: [this.data.coinTypeA, this.data.coinTypeB],
       arguments: [
         transaction.object(this.data.poolId),
-        transaction.object(config.pauseStatusId),
+        transaction.object(this.data.pauseStatusId),
+        transaction.object(this.data.coinAId),
+        transaction.object(this.data.coinBId),
         transaction.pure.u64(this.data.amountADesired),
         transaction.pure.u64(this.data.amountBDesired),
         transaction.pure.u64(this.data.amountAMin),
