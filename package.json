@@ -43,8 +43,9 @@
     "MSafe Sui"
   ],
   "dependencies": {
+    "@virtue/sdk": "https://github.com/Virtue-CDP/virtue-sdk.git",
     "sort-keys-recursive": "^2.1.10",
-    "@virtue/sdk": "https://github.com/Virtue-CDP/virtue-sdk.git"
+    "tslog": "^4.9.3"
   },
   "devDependencies": {
     "@iota/iota-sdk": "^1.1.0",
@@ -66,7 +67,6 @@
     "prettier": "^3.2.4",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.2",
-    "tslog": "^4.9.3",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },

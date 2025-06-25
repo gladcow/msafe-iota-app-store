@@ -3,7 +3,7 @@ import { IotaClient } from '@iota/iota-sdk/client';
 import { Transaction } from '@iota/iota-sdk/transactions';
 import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
-import { Logger } from 'tslog';
+import { Logger, ILogObj } from 'tslog';
 
 import { IotaNetworks } from '@/types';
 
@@ -13,8 +13,11 @@ import {
   ManagePositionIntentionData,
   WithdrawStabilityPoolIntentionData,
 } from './types/api';
+import { getCoinSymbolByType } from './types/helper';
 
-export const logger = new Logger({ name: 'Virtue' });
+const logger = new Logger<ILogObj>({
+  name: 'Virtue',
+});
 
 export class Decoder {
   constructor(
@@ -27,7 +30,6 @@ export class Decoder {
 
   async decode(): Promise<DecodeResult> {
     const { transaction } = this.input;
-
     const txContent = await transaction.toJSON();
     const tx = Transaction.from(txContent);
 
@@ -55,27 +57,38 @@ export class Decoder {
 
   private txData: any;
 
+  private getRequestAccountCommand() {
+    return (
+      this.getMoveCallModuleCommand('account', 'request') ||
+      this.getMoveCallModuleCommand('account', 'request_with_account') ||
+      null
+    );
+  }
+
   // validate function by checking function signature
   private isManagePositionTransaction() {
     return (
-      !!this.getMoveCallModuleCommand('manage', 'request') &&
-      !!this.getMoveCallModuleCommand('vault', 'manage_position')
+      // create account when first time deposit
+      (!!this.getMoveCallModuleCommand('account', 'request') ||
+        // re-use account
+        !!this.getMoveCallModuleCommand('account', 'request_with_account')) &&
+      !!this.getMoveCallModuleCommand('vault', 'update_position')
     );
   }
 
   private isDepositStabilityPoolTransaction() {
     // TODO: typo
     return (
-      !!this.getMoveCallModuleCommand('stablility_pool', 'deposit') &&
-      !this.getMoveCallModuleCommand('stablility_pool', 'withdraw')
+      !!this.getMoveCallModuleCommand('stability_pool', 'deposit') &&
+      !this.getMoveCallModuleCommand('stability_pool', 'withdraw')
     );
   }
 
   private isWithdrawStabilityPoolTransaction() {
     // TODO: typo
     return (
-      !!this.getMoveCallModuleCommand('stablility_pool', 'withdraw') &&
-      !!this.getMoveCallModuleCommand('stablility_pool', 'withdraw')
+      !!this.getMoveCallModuleCommand('stability_pool', 'withdraw') &&
+      !!this.getMoveCallModuleCommand('stability_pool', 'withdraw')
     );
   }
 
@@ -135,24 +148,47 @@ export class Decoder {
   // decode transactions
   private decodeManagePosition(): DecodeResult {
     const intentionData = {
-      collateralType: '',
-      collateralAmount: '',
+      collateralSymbol: '',
+      depositAmount: '',
       borrowAmount: '',
       repaymentAmount: '',
       withdrawAmount: '',
-    } as ManagePositionIntentionData;
+      accountObjId: '',
+      recipient: '',
+    } as Omit<ManagePositionIntentionData, 'collateralSymbol'> & { collateralSymbol: string };
 
-    const requestManagePositionCommand = this.getMoveCallModuleCommand('manage', 'request');
-    const splitCoinsCommands = this.getSplitCoinsCommands().filter((c) => c.index < requestManagePositionCommand.index);
-    const zeroCoinsCommands = this.getZeroCoinsCommands().filter((c) => c.index < requestManagePositionCommand.index);
+    // accountObjId
+    const requestAccountCommand = this.getRequestAccountCommand();
+    if (!requestAccountCommand) {
+      throw Error('requestAccountCommand not found');
+    }
+    if (requestAccountCommand.MoveCall.function === 'request') {
+      // account::request
+      intentionData.accountObjId = undefined;
+    } else {
+      // account::request_with_account
+      const argument = requestAccountCommand.MoveCall.arguments[0];
+      if (argument.$kind === 'Input') {
+        if (argument.type === 'object') {
+          intentionData.accountObjId = (argument as any).value;
+        }
+      }
+    }
+    // depositAmount & repaymentAmount
+    // we use the order of collectorNewCommand to deduct which commands related to depositAmount & repaymentAmount
+    const collectorNewCommand = this.getMoveCallModuleCommand('collector', 'new');
+    const getComparedCommand = () => {
+      if (!collectorNewCommand) {
+        return requestAccountCommand;
+      }
+      return requestAccountCommand.index < collectorNewCommand.index ? requestAccountCommand : collectorNewCommand;
+    };
+    const comparedCommand = getComparedCommand();
+    const splitCoinsCommands = this.getSplitCoinsCommands().filter((c) => c.index < comparedCommand.index);
+    const zeroCoinsCommands = this.getZeroCoinsCommands().filter((c) => c.index < comparedCommand.index);
 
-    if (
-      !(
-        splitCoinsCommands.length === 2 ||
-        zeroCoinsCommands.length === 2 ||
-        (splitCoinsCommands.length === 1 && zeroCoinsCommands.length === 1)
-      )
-    ) {
+    // check if we only handle 2 coin assets
+    if (splitCoinsCommands.length + zeroCoinsCommands.length !== 2) {
       throw Error('Unhandled Transaction');
     }
 
@@ -163,12 +199,12 @@ export class Decoder {
       if (sortedSplitCoinsCommands[0].$kind === 'SplitCoins') {
         const inputCoinObject = sortedSplitCoinsCommands[0].SplitCoins.amounts[0];
         if (inputCoinObject.$kind === 'Input') {
-          intentionData.collateralAmount = this.getPureInputU64(inputCoinObject.Input);
+          intentionData.depositAmount = this.getPureInputU64(inputCoinObject.Input);
         }
       }
 
       if (sortedSplitCoinsCommands[1].$kind === 'SplitCoins') {
-        const inputCoinObject = sortedSplitCoinsCommands[0].SplitCoins.amounts[1];
+        const inputCoinObject = sortedSplitCoinsCommands[1].SplitCoins.amounts[0];
         if (inputCoinObject.$kind === 'Input') {
           intentionData.repaymentAmount = this.getPureInputU64(inputCoinObject.Input);
         }
@@ -178,7 +214,7 @@ export class Decoder {
       const sortedZeroCommands = zeroCoinsCommands.sort((a, b) => a.index - b.index);
       if (sortedZeroCommands[0].$kind === 'MoveCall') {
         if (sortedZeroCommands[0].MoveCall.module === 'coin' && sortedZeroCommands[0].MoveCall.function === 'zero') {
-          intentionData.collateralAmount = '0';
+          intentionData.depositAmount = '0';
         }
       }
 
@@ -200,7 +236,7 @@ export class Decoder {
           zeroCoinsCommand.MoveCall.module === 'coin' &&
           zeroCoinsCommand.MoveCall.function === 'zero'
         ) {
-          intentionData.collateralAmount = '0';
+          intentionData.depositAmount = '0';
         }
         // repaymentAmount
         if (splitCoinsCommand.$kind === 'SplitCoins') {
@@ -215,7 +251,7 @@ export class Decoder {
         if (splitCoinsCommand.$kind === 'SplitCoins') {
           const collateralAmount = splitCoinsCommand.SplitCoins.amounts[0];
           if (collateralAmount.$kind === 'Input') {
-            intentionData.collateralAmount = this.getPureInputU64(collateralAmount.Input);
+            intentionData.depositAmount = this.getPureInputU64(collateralAmount.Input);
           }
         }
         // repaymentAmount
@@ -229,19 +265,24 @@ export class Decoder {
       }
     }
 
-    // collateralType
-    const collateralType = requestManagePositionCommand.MoveCall.typeArguments[0];
-    intentionData.collateralType = collateralType;
+    const debtorRequestCommand = this.getMoveCallModuleCommand('request', 'debtor_request');
+    // collateralSymbol
+    const collateralType = debtorRequestCommand.MoveCall.typeArguments[0];
+    intentionData.collateralSymbol = getCoinSymbolByType(collateralType);
 
     // borrowAmount
-    const borrowAmountArgument = requestManagePositionCommand.MoveCall.arguments[3];
+    const borrowAmountArgument = debtorRequestCommand.MoveCall.arguments[4];
     if (borrowAmountArgument.$kind === 'Input') {
       intentionData.borrowAmount = this.getPureInputU64(borrowAmountArgument.Input);
     }
     // withdrawAmount
-    const withdrawAmountArgument = requestManagePositionCommand.MoveCall.arguments[5];
+    const withdrawAmountArgument = debtorRequestCommand.MoveCall.arguments[6];
     if (withdrawAmountArgument.$kind === 'Input') {
       intentionData.withdrawAmount = this.getPureInputU64(withdrawAmountArgument.Input);
+    }
+
+    if (!intentionData.collateralSymbol) {
+      throw Error(`collateralSymbol: ${intentionData.collateralSymbol} is not defined`);
     }
 
     return {
@@ -253,8 +294,7 @@ export class Decoder {
 
   private depositStabilityPool(): DecodeResult {
     const intentionData = {
-      vusdAmount: '',
-      recipient: undefined,
+      depositAmount: '',
     } as DepositStabilityPoolIntentionData;
 
     const splitCoinsCommands = this.getSplitCoinsCommands();
@@ -268,7 +308,7 @@ export class Decoder {
     if (splitCoinsCommand.$kind === 'SplitCoins') {
       const vusdAmount = splitCoinsCommand.SplitCoins.amounts[0];
       if (vusdAmount.$kind === 'Input') {
-        intentionData.vusdAmount = this.getPureInputU64(vusdAmount.Input);
+        intentionData.depositAmount = this.getPureInputU64(vusdAmount.Input);
       }
     }
 
@@ -276,14 +316,6 @@ export class Decoder {
     const transferObjectsCommands = this.GetTransferObjectsCommands();
     if (transferObjectsCommands.length !== 1) {
       throw Error('Unhandled transaction');
-    }
-
-    const transferObjectsCommand = transferObjectsCommands[0];
-    if (transferObjectsCommand.$kind === 'TransferObjects') {
-      const recipient = transferObjectsCommand.TransferObjects.address;
-      if (recipient.$kind === 'Input') {
-        intentionData.recipient = this.getPureInputAddress(recipient.Input);
-      }
     }
 
     return {
@@ -295,8 +327,7 @@ export class Decoder {
 
   private withdrawStabilityPool(): DecodeResult {
     const intentionData = {
-      vusdAmount: '',
-      recipient: undefined,
+      withdrawAmount: '',
     } as WithdrawStabilityPoolIntentionData;
 
     const splitCoinsCommands = this.getSplitCoinsCommands();
@@ -310,7 +341,7 @@ export class Decoder {
     if (splitCoinsCommand.$kind === 'SplitCoins') {
       const vusdAmount = splitCoinsCommand.SplitCoins.amounts[0];
       if (vusdAmount.$kind === 'Input') {
-        intentionData.vusdAmount = this.getPureInputU64(vusdAmount.Input);
+        intentionData.withdrawAmount = this.getPureInputU64(vusdAmount.Input);
       }
     }
 
@@ -318,14 +349,6 @@ export class Decoder {
     const transferObjectsCommands = this.GetTransferObjectsCommands();
     if (transferObjectsCommands.length !== 1) {
       throw Error('Unhandled transaction');
-    }
-
-    const transferObjectsCommand = transferObjectsCommands[0];
-    if (transferObjectsCommand.$kind === 'TransferObjects') {
-      const recipient = transferObjectsCommand.TransferObjects.address;
-      if (recipient.$kind === 'Input') {
-        intentionData.recipient = this.getPureInputAddress(recipient.Input);
-      }
     }
 
     return {
