@@ -250,18 +250,20 @@ export class Decoder {
 
     const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 6) {
+    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 8) {
       throw new Error('Invalid add_liquidity payload structure');
     }
 
     const [coinTypeA, coinTypeB] = typeArguments;
 
     const poolId = this.extractObjectId(args[0]);
-    // skip args[1] - pauseStatusId
-    const amountADesired = this.extractU64Value(args[2]);
-    const amountBDesired = this.extractU64Value(args[3]);
-    const amountAMin = this.extractU64Value(args[4]);
-    const amountBMin = this.extractU64Value(args[5]);
+    const pauseStatusId = this.extractObjectId(args[1]);
+    const coinAId = this.extractObjectId(args[2]);
+    const coinBId = this.extractObjectId(args[3]);
+    const amountADesired = this.extractU64Value(args[4]);
+    const amountBDesired = this.extractU64Value(args[5]);
+    const amountAMin = this.extractU64Value(args[6]);
+    const amountBMin = this.extractU64Value(args[7]);
 
     return {
       txType: TransactionType.Assets,
@@ -269,11 +271,14 @@ export class Decoder {
       intentionData: {
         coinTypeA,
         coinTypeB,
+        coinAId,
+        coinBId,
         amountADesired: amountADesired.toString(),
         amountBDesired: amountBDesired.toString(),
         amountAMin: amountAMin.toString(),
         amountBMin: amountBMin.toString(),
         poolId,
+        pauseStatusId,
       },
     };
   }
@@ -292,17 +297,18 @@ export class Decoder {
 
     const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 5) {
+    if (!typeArguments || typeArguments.length < 2 || !args || args.length < 6) {
       throw new Error('Invalid remove_liquidity payload structure');
     }
 
     const [coinTypeA, coinTypeB] = typeArguments;
 
     const poolId = this.extractObjectId(args[0]);
-    // skip args[1] - pauseStatusId
-    const amountLp = this.extractU64Value(args[2]);
-    const amountAMin = this.extractU64Value(args[3]);
-    const amountBMin = this.extractU64Value(args[4]);
+    const pauseStatusId = this.extractObjectId(args[1]);
+    const coinLpId = this.extractObjectId(args[2]);
+    const amountLp = this.extractU64Value(args[3]);
+    const amountAMin = this.extractU64Value(args[4]);
+    const amountBMin = this.extractU64Value(args[5]);
 
     return {
       txType: TransactionType.Assets,
@@ -310,10 +316,12 @@ export class Decoder {
       intentionData: {
         coinTypeA,
         coinTypeB,
+        coinLpId,
         amountLp: amountLp.toString(),
         amountAMin: amountAMin.toString(),
         amountBMin: amountBMin.toString(),
         poolId,
+        pauseStatusId,
       },
     };
   }
@@ -339,7 +347,7 @@ export class Decoder {
     const [coinTypeA, coinTypeB] = typeArguments;
 
     const poolId = this.extractObjectId(args[0]);
-    // skip args[1] - pauseStatusId
+    const pauseStatusId = this.extractObjectId(args[1]);
     const coinAId = this.extractObjectId(args[2]);
     const amountAIn = this.extractU64Value(args[3]);
     const amountBOutMin = this.extractU64Value(args[4]);
@@ -354,6 +362,7 @@ export class Decoder {
         coinAId,
         amountAIn: amountAIn.toString(),
         amountBOutMin: amountBOutMin.toString(),
+        pauseStatusId,
       },
     };
   }
@@ -379,7 +388,7 @@ export class Decoder {
     const [coinTypeA, coinTypeB] = typeArguments;
 
     const poolId = this.extractObjectId(args[0]);
-    // skip args[1] - pauseStatusId
+    const pauseStatusId = this.extractObjectId(args[1]);
     const coinBId = this.extractObjectId(args[2]);
     const amountBIn = this.extractU64Value(args[3]);
     const amountAOutMin = this.extractU64Value(args[4]);
@@ -394,6 +403,7 @@ export class Decoder {
         coinBId,
         amountBIn: amountBIn.toString(),
         amountAOutMin: amountAOutMin.toString(),
+        pauseStatusId,
       },
     };
   }
@@ -419,7 +429,7 @@ export class Decoder {
     const [coinTypeA, coinTypeB] = typeArguments;
 
     const poolId = this.extractObjectId(args[0]);
-    // skip args[1] - pauseStatusId
+    const pauseStatusId = this.extractObjectId(args[1]);
     const coinAId = this.extractObjectId(args[2]);
     const amountAMax = this.extractU64Value(args[3]);
     const amountBOut = this.extractU64Value(args[4]);
@@ -434,6 +444,7 @@ export class Decoder {
         coinAId,
         amountAMax: amountAMax.toString(),
         amountBOut: amountBOut.toString(),
+        pauseStatusId,
       },
     };
   }
@@ -459,7 +470,7 @@ export class Decoder {
     const [coinTypeA, coinTypeB] = typeArguments;
 
     const poolId = this.extractObjectId(args[0]);
-    // skip args[1] - pauseStatusId
+    const pauseStatusId = this.extractObjectId(args[1]);
     const coinBId = this.extractObjectId(args[2]);
     const amountBMax = this.extractU64Value(args[3]);
     const amountAOut = this.extractU64Value(args[4]);
@@ -474,6 +485,7 @@ export class Decoder {
         coinBId,
         amountBMax: amountBMax.toString(),
         amountAOut: amountAOut.toString(),
+        pauseStatusId,
       },
     };
   }
