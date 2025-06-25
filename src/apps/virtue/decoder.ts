@@ -3,6 +3,7 @@ import { IotaClient } from '@iota/iota-sdk/client';
 import { Transaction } from '@iota/iota-sdk/transactions';
 import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
+import { Logger, ILogObj } from 'tslog';
 
 import { IotaNetworks } from '@/types';
 
@@ -13,8 +14,6 @@ import {
   WithdrawStabilityPoolIntentionData,
 } from './types/api';
 import { getCoinSymbolByType } from './types/helper';
-
-import { Logger, ILogObj } from 'tslog';
 
 const logger = new Logger<ILogObj>({
   name: 'Virtue',
@@ -35,8 +34,6 @@ export class Decoder {
     const tx = Transaction.from(txContent);
 
     this.transaction = tx;
-    logger.info({ transactions: tx.blockData.transactions });
-    logger.info({ inputs: tx.blockData.inputs });
 
     if (this.isManagePositionTransaction()) {
       return this.decodeManagePosition();
@@ -180,16 +177,18 @@ export class Decoder {
     // depositAmount & repaymentAmount
     // we use the order of collectorNewCommand to deduct which commands related to depositAmount & repaymentAmount
     const collectorNewCommand = this.getMoveCallModuleCommand('collector', 'new');
-    const splitCoinsCommands = this.getSplitCoinsCommands().filter((c) => c.index < collectorNewCommand.index);
-    const zeroCoinsCommands = this.getZeroCoinsCommands().filter((c) => c.index < collectorNewCommand.index);
+    const getComparedCommand = () => {
+      if (!collectorNewCommand) {
+        return requestAccountCommand;
+      }
+      return requestAccountCommand.index < collectorNewCommand.index ? requestAccountCommand : collectorNewCommand;
+    };
+    const comparedCommand = getComparedCommand();
+    const splitCoinsCommands = this.getSplitCoinsCommands().filter((c) => c.index < comparedCommand.index);
+    const zeroCoinsCommands = this.getZeroCoinsCommands().filter((c) => c.index < comparedCommand.index);
 
-    if (
-      !(
-        splitCoinsCommands.length === 2 ||
-        zeroCoinsCommands.length === 2 ||
-        (splitCoinsCommands.length === 1 && zeroCoinsCommands.length === 1)
-      )
-    ) {
+    // check if we only handle 2 coin assets
+    if (splitCoinsCommands.length + zeroCoinsCommands.length !== 2) {
       throw Error('Unhandled Transaction');
     }
 
