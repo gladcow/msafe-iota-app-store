@@ -47,7 +47,7 @@ describe('Virtue App', () => {
   }
 
   // --- Position ---
-  it('Test open position', async () => {
+  it('Test open position with IOTA collateral', async () => {
     const collateralSymbol: COLLATERAL_COIN = 'IOTA';
     const depositAmount = (10 ** COIN_DECIMALS.IOTA).toString();
     const borrowAmount = (10 ** COIN_DECIMALS.VUSD).toString();
@@ -75,7 +75,7 @@ describe('Virtue App', () => {
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
-  it('Test position deposit', async () => {
+  it('Test position deposit with IOTA collateral', async () => {
     const collateralSymbol: COLLATERAL_COIN = 'IOTA';
     const depositAmount = (10 ** COIN_DECIMALS.IOTA).toString();
     const borrowAmount = (0).toString();
@@ -103,7 +103,7 @@ describe('Virtue App', () => {
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
-  it('Test position borrow', async () => {
+  it('Test position borrow with IOTA collateral', async () => {
     const collateralSymbol: COLLATERAL_COIN = 'IOTA';
     const depositAmount = (0).toString();
     const borrowAmount = (10 ** COIN_DECIMALS.VUSD).toString();
@@ -131,7 +131,7 @@ describe('Virtue App', () => {
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
-  it('Test position withdraw', async () => {
+  it('Test position withdraw with IOTA collateral', async () => {
     const collateralSymbol: COLLATERAL_COIN = 'IOTA';
     const depositAmount = (0).toString();
     const borrowAmount = (0).toString();
@@ -159,9 +159,149 @@ describe('Virtue App', () => {
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
-  it('Test position repay', async () => {
+  it('Test position repay with IOTA collateral', async () => {
     const collateralSymbol: COLLATERAL_COIN = 'IOTA';
     const depositAmount = (0 * 10 ** COIN_DECIMALS.IOTA).toString();
+    const borrowAmount = (0).toString();
+    const repaymentAmount = (0.03 * 10 ** COIN_DECIMALS.VUSD).toString();
+    const withdrawAmount = (0).toString();
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
+      borrowAmount,
+      repaymentAmount,
+      withdrawAmount,
+      accountObjId: undefined,
+    });
+
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
+
+    expect(result.type).toBe('manage-position');
+    const intentionData = result.intentionData as ManagePositionIntentionData;
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
+    expect(intentionData.borrowAmount).toBe(borrowAmount);
+    expect(intentionData.repaymentAmount).toBe(repaymentAmount);
+    expect(intentionData.withdrawAmount).toBe(withdrawAmount);
+  });
+  // stIOTA
+  it('Test open position with stIOTA collateral', async () => {
+    const collateralSymbol: COLLATERAL_COIN = 'stIOTA';
+    const depositAmount = (10 ** COIN_DECIMALS.stIOTA).toString();
+    const borrowAmount = (10 ** COIN_DECIMALS.VUSD).toString();
+    const repaymentAmount = (0).toString();
+    const withdrawAmount = (0).toString();
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
+      borrowAmount,
+      repaymentAmount,
+      withdrawAmount,
+      accountObjId: undefined,
+    });
+
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
+
+    expect(result.type).toBe('manage-position');
+    const intentionData = result.intentionData as ManagePositionIntentionData;
+    expect(intentionData.collateralSymbol).toBe('stIOTA');
+    expect(intentionData.depositAmount).toBe(depositAmount);
+    expect(intentionData.borrowAmount).toBe(borrowAmount);
+    expect(intentionData.repaymentAmount).toBe(repaymentAmount);
+    expect(intentionData.withdrawAmount).toBe(withdrawAmount);
+  });
+
+  it('Test position deposit with stIOTA collateral', async () => {
+    const collateralSymbol: COLLATERAL_COIN = 'stIOTA';
+    const depositAmount = (10 ** COIN_DECIMALS.stIOTA).toString();
+    const borrowAmount = (0).toString();
+    const repaymentAmount = (0).toString();
+    const withdrawAmount = (0).toString();
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
+      borrowAmount,
+      repaymentAmount,
+      withdrawAmount,
+      accountObjId: undefined,
+    });
+
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
+
+    expect(result.type).toBe('manage-position');
+    const intentionData = result.intentionData as ManagePositionIntentionData;
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
+    expect(intentionData.borrowAmount).toBe(borrowAmount);
+    expect(intentionData.repaymentAmount).toBe(repaymentAmount);
+    expect(intentionData.withdrawAmount).toBe(withdrawAmount);
+  });
+
+  it('Test position borrow with stIOTA collateral', async () => {
+    const collateralSymbol: COLLATERAL_COIN = 'stIOTA';
+    const depositAmount = (0).toString();
+    const borrowAmount = (10 ** COIN_DECIMALS.VUSD).toString();
+    const repaymentAmount = (0).toString();
+    const withdrawAmount = (0).toString();
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
+      borrowAmount,
+      repaymentAmount,
+      withdrawAmount,
+      accountObjId: undefined,
+    });
+
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
+
+    expect(result.type).toBe('manage-position');
+    const intentionData = result.intentionData as ManagePositionIntentionData;
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
+    expect(intentionData.borrowAmount).toBe(borrowAmount);
+    expect(intentionData.repaymentAmount).toBe(repaymentAmount);
+    expect(intentionData.withdrawAmount).toBe(withdrawAmount);
+  });
+
+  it('Test position withdraw with stIOTA collateral', async () => {
+    const collateralSymbol: COLLATERAL_COIN = 'stIOTA';
+    const depositAmount = (0).toString();
+    const borrowAmount = (0).toString();
+    const repaymentAmount = (0).toString();
+    const withdrawAmount = (10 ** COIN_DECIMALS.stIOTA).toString();
+
+    const tx = await virtueClient.buildManagePositionTransaction({
+      collateralSymbol,
+      depositAmount,
+      borrowAmount,
+      repaymentAmount,
+      withdrawAmount,
+      accountObjId: undefined,
+    });
+
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
+
+    expect(result.type).toBe('manage-position');
+    const intentionData = result.intentionData as ManagePositionIntentionData;
+    expect(intentionData.collateralSymbol).toBe(collateralSymbol);
+    expect(intentionData.depositAmount).toBe(depositAmount);
+    expect(intentionData.borrowAmount).toBe(borrowAmount);
+    expect(intentionData.repaymentAmount).toBe(repaymentAmount);
+    expect(intentionData.withdrawAmount).toBe(withdrawAmount);
+  });
+
+  it('Test position repay with stIOTA collateral', async () => {
+    const collateralSymbol: COLLATERAL_COIN = 'stIOTA';
+    const depositAmount = (0 * 10 ** COIN_DECIMALS.stIOTA).toString();
     const borrowAmount = (0).toString();
     const repaymentAmount = (0.03 * 10 ** COIN_DECIMALS.VUSD).toString();
     const withdrawAmount = (0).toString();
