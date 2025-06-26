@@ -567,7 +567,7 @@
 
     "@unrs/resolver-binding-win32-x64-msvc": ["@unrs/resolver-binding-win32-x64-msvc@1.9.1", "", { "os": "win32", "cpu": "x64" }, "sha512-rS86wI4R6cknYM3is3grCb/laE8XBEbpWAMSIPjYfmYp75KL5dT87jXF2orDa4tQYg5aajP5G8Fgh34dRyR+Rw=="],
 
-    "@virtue/sdk": ["@virtue/sdk@github:Virtue-CDP/virtue-sdk#3166adb", { "dependencies": { "@iota/iota-sdk": "^1.2.0", "@pythnetwork/pyth-iota-js": "^2.1.0", "@types/superstruct": "^0.8.2", "superstruct": "^1.0.3" } }, "Virtue-CDP-virtue-sdk-3166adb"],
+    "@virtue/sdk": ["@virtue/sdk@github:Virtue-CDP/virtue-sdk#1fa6c0b", { "dependencies": { "@iota/iota-sdk": "^1.2.0", "@pythnetwork/pyth-iota-js": "^2.1.0", "@types/superstruct": "^0.8.2", "superstruct": "^1.0.3" } }, "Virtue-CDP-virtue-sdk-1fa6c0b"],
 
     "@wallet-standard/app": ["@wallet-standard/app@1.1.0", "", { "dependencies": { "@wallet-standard/base": "^1.1.0" } }, "sha512-3CijvrO9utx598kjr45hTbbeeykQrQfKmSnxeWOgU25TOEpvcipD/bYDQWIqUv1Oc6KK4YStokSMu/FBNecGUQ=="],
 

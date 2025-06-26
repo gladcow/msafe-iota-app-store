@@ -47,6 +47,8 @@ export class Decoder {
       return this.withdrawStabilityPool();
     }
 
+    logger.info({ commands: this.commands });
+
     throw new Error(`Unknown transaction type`);
   }
 
@@ -313,9 +315,11 @@ export class Decoder {
     }
 
     // recipient
-    const transferObjectsCommands = this.GetTransferObjectsCommands();
-    if (transferObjectsCommands.length !== 1) {
-      throw Error('Unhandled transaction');
+    const stabilityPoolDepositCommand = this.getMoveCallModuleCommand('stability_pool', 'deposit');
+
+    const recipientArgument = stabilityPoolDepositCommand.MoveCall.arguments[2];
+    if (recipientArgument.$kind === 'Input' && recipientArgument.type === 'pure') {
+      intentionData.recipient = this.getPureInputAddress(recipientArgument.Input);
     }
 
     return {
@@ -330,25 +334,28 @@ export class Decoder {
       withdrawAmount: '',
     } as WithdrawStabilityPoolIntentionData;
 
-    const splitCoinsCommands = this.getSplitCoinsCommands();
-
-    if (splitCoinsCommands.length !== 1) {
-      throw Error('Unhandled transaction');
-    }
-
-    // vusdAmount
-    const splitCoinsCommand = splitCoinsCommands[0];
-    if (splitCoinsCommand.$kind === 'SplitCoins') {
-      const vusdAmount = splitCoinsCommand.SplitCoins.amounts[0];
-      if (vusdAmount.$kind === 'Input') {
-        intentionData.withdrawAmount = this.getPureInputU64(vusdAmount.Input);
-      }
+    const stabilityPoolWithdrawCommand = this.getMoveCallModuleCommand('stability_pool', 'withdraw');
+    const amountArgument = stabilityPoolWithdrawCommand.MoveCall.arguments[3];
+    if (amountArgument.$kind === 'Input') {
+      intentionData.withdrawAmount = this.getPureInputU64(amountArgument.Input);
     }
 
     // recipient
-    const transferObjectsCommands = this.GetTransferObjectsCommands();
-    if (transferObjectsCommands.length !== 1) {
-      throw Error('Unhandled transaction');
+    const requestAccountCommand = this.getRequestAccountCommand();
+    if (!requestAccountCommand) {
+      throw Error('requestAccountCommand not found');
+    }
+    if (requestAccountCommand.MoveCall.function === 'request') {
+      // account::request
+      intentionData.accountObj = undefined;
+    } else {
+      // account::request_with_account
+      const argument = requestAccountCommand.MoveCall.arguments[0];
+      if (argument.$kind === 'Input') {
+        if (argument.type === 'object') {
+          intentionData.accountObj = (argument as any).value;
+        }
+      }
     }
 
     return {

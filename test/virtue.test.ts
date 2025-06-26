@@ -327,35 +327,32 @@ describe('Virtue App', () => {
     expect(intentionData.withdrawAmount).toBe(withdrawAmount);
   });
 
-  // TODO: test borrow and deposit to stability pool
-
-  // TODO: tank test
   // --- Tank ---
-  // it('Test deposit stability pool', async () => {
-  //   const depositAmount = (10 ** 9).toString();
-  //
-  //   const tx = await virtueClient.buildDepositStabilityPoolTransaction({
-  //     depositAmount,
-  //   });
-  //
-  //   const decoder = getDecoder(tx);
-  //   const result = await decoder.decode();
-  //
-  //   expect(result.type).toBe('deposit-stability-pool');
-  //   const intentionData = result.intentionData as DepositStabilityPoolIntentionData;
-  //   expect(intentionData.depositAmount).toBe(depositAmount);
-  // });
-  //
-  // it('Test withdraw stability pool', async () => {
-  //   const withdrawAmount = (10 ** 6).toString();
-  //
-  //   const tx = await virtueClient.buildWithdrawStabilityPoolTransaction({ withdrawAmount });
-  //
-  //   const decoder = getDecoder(tx);
-  //   const result = await decoder.decode();
-  //
-  //   expect(result.type).toBe('withdraw-stability-pool');
-  //   const intentionData = result.intentionData as WithdrawStabilityPoolIntentionData;
-  //   expect(intentionData.withdrawAmount).toBe(withdrawAmount);
-  // });
+  it('Test deposit stability pool', async () => {
+    const depositAmount = (10 ** 9).toString();
+
+    const tx = await virtueClient.buildDepositStabilityPoolTransaction({
+      depositAmount,
+    });
+
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
+
+    expect(result.type).toBe('deposit-stability-pool');
+    const intentionData = result.intentionData as DepositStabilityPoolIntentionData;
+    expect(intentionData.depositAmount).toBe(depositAmount);
+  });
+
+  it('Test withdraw stability pool', async () => {
+    const withdrawAmount = (10 ** 6).toString();
+
+    const tx = await virtueClient.buildWithdrawStabilityPoolTransaction({ withdrawAmount });
+
+    const decoder = getDecoder(tx);
+    const result = await decoder.decode();
+
+    expect(result.type).toBe('withdraw-stability-pool');
+    const intentionData = result.intentionData as WithdrawStabilityPoolIntentionData;
+    expect(intentionData.withdrawAmount).toBe(withdrawAmount);
+  });
 });
