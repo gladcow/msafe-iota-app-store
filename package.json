@@ -48,7 +48,7 @@
     "tslog": "^4.9.3"
   },
   "devDependencies": {
-    "@iota/iota-sdk": "^1.1.0",
+    "@iota/iota-sdk": "^1.2.0",
     "@iota/wallet-standard": "^0.2.9",
     "@msafe/iota-utils": "^1.1.5",
     "@types/jest": "^29.2.1",

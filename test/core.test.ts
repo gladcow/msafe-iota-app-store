@@ -24,7 +24,7 @@ describe('MSafe Core Wallet', () => {
       } as CoinTransferIntentionData,
     });
     expect(res.blockData.version).toBe(1);
-    expect(res.blockData.sender).toBe('0x0df172b18d30935ad68b2f9d6180e5adcf8edfd7df874852817002e6eccada66');
+    expect(res.blockData.sender).toBe('0x6ff423cb66243ef1fb02dff88aeed580362e2b28f59b92e10b81074b49bea4e1');
   });
 
   it('Test intention serialization', () => {

@@ -1,12 +1,11 @@
-import { IotaClient } from '@iota/iota-sdk/dist/cjs/client';
-import { Transaction } from '@iota/iota-sdk/dist/cjs/transactions';
+import { IotaClient } from '@iota/iota-sdk/client';
+import { Transaction } from '@iota/iota-sdk/transactions';
 import { IotaSignTransactionInput, WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
 
 import { IotaNetworks } from '@/types';
 
 import { Decoder } from './decoder';
-import { MSafeAppHelper } from '../interface';
 import { DepositStabilityPoolIntention, WithdrawStabilityPoolIntention } from './intentions/depositStabilityPool';
 import { ManagePositionIntention } from './intentions/managePosition';
 import { TransactionSubType } from './types';
@@ -16,6 +15,7 @@ import {
   WithdrawStabilityPoolIntentionData,
 } from './types/api';
 import { VirtueIntentionData } from './types/helper';
+import { MSafeAppHelper } from '../interface';
 
 export type VirtueIntention = ManagePositionIntention | DepositStabilityPoolIntention | WithdrawStabilityPoolIntention;
 
