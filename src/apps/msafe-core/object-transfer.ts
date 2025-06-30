@@ -1,4 +1,4 @@
-import { IotaClient } from '@iota/iota-sdk/dist/cjs/client';
+import { IotaClient } from '@iota/iota-sdk/client';
 import { Transaction } from '@iota/iota-sdk/transactions';
 import { WalletAccount } from '@iota/wallet-standard';
 import { TransactionType } from '@msafe/iota-utils';
