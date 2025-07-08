@@ -35,7 +35,12 @@ export class UnstakeIntention extends BaseIntention<UnstakeIntentionData> {
       package: config.moduleId,
       module: config.nativePoolEntry,
       function: config.unstakeMethod,
-      typeArguments: [this.data.wrapper, this.data.metadata, this.data.cert, this.data.ctx],
+      arguments: [
+        transaction.object(this.data.wrapper),
+        transaction.object(this.data.metadata),
+        transaction.object(this.data.cert),
+        transaction.object(this.data.ctx),
+      ],
     });
 
     return transaction;

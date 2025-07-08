@@ -23,7 +23,7 @@ describe('Swirl Wallet', () => {
   describe('Build/Serialize', () => {
     it('Change Base Reward Fee transaction build', async () => {
       const intentionData: ChangeBaseRewardFeeIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 
@@ -44,7 +44,7 @@ describe('Swirl Wallet', () => {
 
     it('Change Base Reward Fee intention serialization', () => {
       const intentionData: ChangeBaseRewardFeeIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 
@@ -58,7 +58,7 @@ describe('Swirl Wallet', () => {
 
     it('Change MinStake transaction build', async () => {
       const intentionData: ChangeMinStakeIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 
@@ -79,7 +79,7 @@ describe('Swirl Wallet', () => {
 
     it('Change MinStake intention serialization', () => {
       const intentionData: ChangeMinStakeIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 
@@ -93,10 +93,10 @@ describe('Swirl Wallet', () => {
 
     it('Stake transaction build', async () => {
       const intentionData: StakeIntentionData = {
-        metadata: '',
-        wrapper: '',
-        coin: '',
-        ctx: '',
+        metadata: '0x0000000000000000000000000000000000000000000000000000000000000001',
+        wrapper: '0x0000000000000000000000000000000000000000000000000000000000000002',
+        coin: '0x0000000000000000000000000000000000000000000000000000000000000003',
+        ctx: '0x0000000000000000000000000000000000000000000000000000000000000004',
       };
 
       const res = await appHelper.build({
@@ -116,10 +116,10 @@ describe('Swirl Wallet', () => {
 
     it('Stake intention serialization', () => {
       const intentionData: StakeIntentionData = {
-        metadata: '',
-        wrapper: '',
-        coin: '',
-        ctx: '',
+        metadata: '0x0000000000000000000000000000000000000000000000000000000000000001',
+        wrapper: '0x0000000000000000000000000000000000000000000000000000000000000002',
+        coin: '0x0000000000000000000000000000000000000000000000000000000000000003',
+        ctx: '0x0000000000000000000000000000000000000000000000000000000000000004',
       };
 
       const intention = StakeIntention.fromData(intentionData);
@@ -134,10 +134,10 @@ describe('Swirl Wallet', () => {
 
     it('Unstake transaction build', async () => {
       const intentionData: UnstakeIntentionData = {
-        metadata: '',
-        wrapper: '',
-        cert: '',
-        ctx: '',
+        metadata: '0x0000000000000000000000000000000000000000000000000000000000000001',
+        wrapper: '0x0000000000000000000000000000000000000000000000000000000000000002',
+        cert: '0x0000000000000000000000000000000000000000000000000000000000000003',
+        ctx: '0x0000000000000000000000000000000000000000000000000000000000000004',
       };
 
       const res = await appHelper.build({
@@ -157,10 +157,10 @@ describe('Swirl Wallet', () => {
 
     it('Unstake intention serialization', () => {
       const intentionData: UnstakeIntentionData = {
-        metadata: '',
-        wrapper: '',
-        cert: '',
-        ctx: '',
+        metadata: '0x0000000000000000000000000000000000000000000000000000000000000001',
+        wrapper: '0x0000000000000000000000000000000000000000000000000000000000000002',
+        cert: '0x0000000000000000000000000000000000000000000000000000000000000003',
+        ctx: '0x0000000000000000000000000000000000000000000000000000000000000004',
       };
 
       const intention = UnstakeIntention.fromData(intentionData);
@@ -175,7 +175,7 @@ describe('Swirl Wallet', () => {
 
     it('Update Rewards Revert transaction build', async () => {
       const intentionData: UpdateRewardsRevertIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 
@@ -196,7 +196,7 @@ describe('Swirl Wallet', () => {
 
     it('Update Rewards Revert intention serialization', () => {
       const intentionData: UpdateRewardsRevertIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 
@@ -210,7 +210,7 @@ describe('Swirl Wallet', () => {
 
     it('Update Rewards Threshold transaction build', async () => {
       const intentionData: UpdateRewardsThresholdIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 
@@ -231,7 +231,7 @@ describe('Swirl Wallet', () => {
 
     it('Update Rewards Threshold intention serialization', () => {
       const intentionData: UpdateRewardsThresholdIntentionData = {
-        owner_cap: '',
+        owner_cap: '0x0000000000000000000000000000000000000000000000000000000000000001',
         value: '1000000000', // 1 IOTA
       };
 

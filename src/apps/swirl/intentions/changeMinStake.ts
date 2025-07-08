@@ -33,8 +33,7 @@ export class ChangeMinStakeIntention extends BaseIntention<ChangeMinStakeIntenti
       package: config.moduleId,
       module: config.nativePoolEntry,
       function: config.changeMinStakeMethod,
-      typeArguments: [this.data.owner_cap],
-      arguments: [transaction.pure.u64(this.data.value)],
+      arguments: [transaction.object(this.data.owner_cap), transaction.pure.u64(this.data.value)],
     });
 
     return transaction;

@@ -110,15 +110,14 @@ export class Decoder {
       throw new Error('Invalid change_base_reward_fee transaction structure');
     }
 
-    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+    const { arguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 1 || !args || args.length < 1) {
+    if (!args || args.length < 2) {
       throw new Error('Invalid change_base_reward_fee payload structure');
     }
 
-    const [ownerCap] = typeArguments;
-
-    const value = this.extractU64Value(args[0]);
+    const ownerCap = this.extractObjectId(args[0]);
+    const value = this.extractU64Value(args[1]);
 
     return {
       txType: TransactionType.Staking,
@@ -142,15 +141,14 @@ export class Decoder {
       throw new Error('Invalid change_min_stake transaction structure');
     }
 
-    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+    const { arguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 1 || !args || args.length < 1) {
+    if (!args || args.length < 2) {
       throw new Error('Invalid change_min_stake payload structure');
     }
 
-    const [ownerCap] = typeArguments;
-
-    const value = this.extractU64Value(args[0]);
+    const ownerCap = this.extractObjectId(args[0]);
+    const value = this.extractU64Value(args[1]);
 
     return {
       txType: TransactionType.Staking,
@@ -169,13 +167,16 @@ export class Decoder {
       throw new Error('Invalid stake transaction structure');
     }
 
-    const { typeArguments } = moveCallCmd.MoveCall;
+    const { arrguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 4) {
+    if (!args || args.length < 4) {
       throw new Error('Invalid stake payload structure');
     }
 
-    const [metadata, wrapper, coin, ctx] = typeArguments;
+    const metadata = this.extractObjectId(args[0]);
+    const wrapper = this.extractObjectId(args[1]);
+    const coin = this.extractObjectId(args[2]);
+    const ctx = this.extractObjectId(args[3]);
 
     return {
       txType: TransactionType.Staking,
@@ -196,13 +197,16 @@ export class Decoder {
       throw new Error('Invalid unstake transaction structure');
     }
 
-    const { typeArguments } = moveCallCmd.MoveCall;
+    const { arguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 4) {
+    if (!args || args.length < 4) {
       throw new Error('Invalid unstake payload structure');
     }
 
-    const [wrapper, metadata, cert, ctx] = typeArguments;
+    const wrapper = this.extractObjectId(args[0]);
+    const metadata = this.extractObjectId(args[1]);
+    const cert = this.extractObjectId(args[2]);
+    const ctx = this.extractObjectId(args[3]);
 
     return {
       txType: TransactionType.Staking,
@@ -228,15 +232,14 @@ export class Decoder {
       throw new Error('Invalid update_reward_reverts transaction structure');
     }
 
-    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+    const { arguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 1 || !args || args.length < 1) {
+    if (!args || args.length < 2) {
       throw new Error('Invalid update_reward_reverts payload structure');
     }
 
-    const [ownerCap] = typeArguments;
-
-    const value = this.extractU64Value(args[0]);
+    const ownerCap = this.extractObjectId(args[0]);
+    const value = this.extractU64Value(args[1]);
 
     return {
       txType: TransactionType.Staking,
@@ -260,15 +263,14 @@ export class Decoder {
       throw new Error('Invalid update_reward_threshold transaction structure');
     }
 
-    const { typeArguments, arguments: args } = moveCallCmd.MoveCall;
+    const { arguments: args } = moveCallCmd.MoveCall;
 
-    if (!typeArguments || typeArguments.length < 1 || !args || args.length < 1) {
+    if (!args || args.length < 2) {
       throw new Error('Invalid update_reward_threshold payload structure');
     }
 
-    const [ownerCap] = typeArguments;
-
-    const value = this.extractU64Value(args[0]);
+    const ownerCap = this.extractObjectId(args[0]);
+    const value = this.extractU64Value(args[1]);
 
     return {
       txType: TransactionType.Staking,
@@ -309,6 +311,67 @@ export class Decoder {
         cmd.MoveCall.module === module &&
         cmd.MoveCall.function === functionName,
     );
+  }
+
+  private extractObjectId(arg: any): string {
+    // Handle Input references
+    if (arg && arg.$kind === 'Input' && typeof arg.Input === 'number') {
+      const inputIndex = arg.Input;
+      if (this.txInputs && this.txInputs[inputIndex]) {
+        const input = this.txInputs[inputIndex];
+
+        // Handle UnresolvedObject type
+        if (input.$kind === 'UnresolvedObject' && input.UnresolvedObject && input.UnresolvedObject.objectId) {
+          return input.UnresolvedObject.objectId;
+        }
+
+        // Handle other input types
+        if (input.type === 'object' && input.objectId) {
+          return input.objectId;
+        }
+        if (input.type === 'pure' && input.value) {
+          return String(input.value);
+        }
+        if (typeof input === 'string') {
+          return input;
+        }
+        if (input.Object && typeof input.Object === 'string') {
+          return input.Object;
+        }
+        if (input.Object && input.Object.ImmOrOwned) {
+          return input.Object.ImmOrOwned;
+        }
+      }
+      return inputIndex.toString();
+    }
+
+    // Handle direct Pure values
+    if (arg && arg.$kind === 'Pure' && arg.Pure) {
+      if (typeof arg.Pure === 'string') {
+        return arg.Pure;
+      }
+      if (Array.isArray(arg.Pure) && arg.Pure.length > 0) {
+        return arg.Pure.join('');
+      }
+    }
+
+    if (arg && typeof arg === 'object') {
+      if (arg.objectId) {
+        return arg.objectId;
+      }
+      if (arg.Object && typeof arg.Object === 'string') {
+        return arg.Object;
+      }
+      if (arg.Object && arg.Object.ImmOrOwned && typeof arg.Object.ImmOrOwned === 'string') {
+        return arg.Object.ImmOrOwned;
+      }
+    }
+
+    if (typeof arg === 'string') {
+      return arg;
+    }
+
+    return String(arg);
   }
 
   private extractU64Value(arg: any): bigint {

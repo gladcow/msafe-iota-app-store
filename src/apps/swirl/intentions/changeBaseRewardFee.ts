@@ -33,8 +33,7 @@ export class ChangeBaseRewardFeeIntention extends BaseIntention<ChangeBaseReward
       package: config.moduleId,
       module: config.nativePoolEntry,
       function: config.changeBaseRewardFeeMethod,
-      typeArguments: [this.data.owner_cap],
-      arguments: [transaction.pure.u64(this.data.value)],
+      arguments: [transaction.object(this.data.owner_cap), transaction.pure.u64(this.data.value)],
     });
 
     return transaction;

@@ -35,11 +35,11 @@ export class StakeIntention extends BaseIntention<StakeIntentionData> {
       package: config.moduleId,
       module: config.nativePoolEntry,
       function: config.stakeMethod,
-      typeArguments: [
-        this.data.metadata,
-        this.data.wrapper,
-        this.data.coin,
-        this.data.ctx,
+      arguments: [
+        transaction.object(this.data.metadata),
+        transaction.object(this.data.wrapper),
+        transaction.object(this.data.coin),
+        transaction.object(this.data.ctx),
       ],
     });
 

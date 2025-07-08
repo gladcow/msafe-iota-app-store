@@ -33,8 +33,10 @@ export class UpdateRewardsRevertIntention extends BaseIntention<UpdateRewardsRev
       package: config.moduleId,
       module: config.nativePoolEntry,
       function: config.updateRewardsRevertMethod,
-      typeArguments: [this.data.owner_cap],
-      arguments: [transaction.pure.u64(this.data.value)],
+      arguments: [
+        transaction.pure.u64(this.data.value),
+        transaction.object(this.data.owner_cap),
+      ],
     });
 
     return transaction;
